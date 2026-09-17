@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>香港小學五年級 - 分數加減挑戰站</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue 3 CDN (Using cdnjs for high reliability) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.min.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti for celebrations -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Noto+Sans+TC:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0fdf4;
+            user-select: none;
+        }
+        .font-num {
+            font-family: 'Chakra Petch', sans-serif;
+        }
+        
+        /* Math Fraction Display Styling */
+        .frac-container {
+            display: inline-flex;
+            align-items: center;
+            vertical-align: middle;
+            margin: 0 4px;
+        }
+        .frac-whole {
+            font-size: 1.55em;
+            font-weight: 800;
+            margin-right: 3px;
+            color: #1e293b;
+        }
+        .frac-stacked {
+            display: inline-flex;
+            flex-direction: column;
+            text-align: center;
+            vertical-align: middle;
+            line-height: 1.1;
+        }
+        .frac-num {
+            border-bottom: 2px solid #334155;
+            padding: 0 4px 1px 4px;
+            font-weight: 700;
+            color: #2563eb;
+        }
+        .frac-den {
+            padding: 1px 4px 0 4px;
+            font-weight: 700;
+            color: #d97706;
+        }
+        
+        /* Larger size for main question display */
+        .q-large .frac-whole { font-size: 2.2em; margin-right: 6px; }
+        .q-large .frac-num { font-size: 1.5em; font-weight: 800; border-bottom: 4px solid #334155; padding: 0 6px 2px 6px; }
+        .q-large .frac-den { font-size: 1.5em; font-weight: 800; padding: 2px 6px 0 6px; }
+
+        /* Custom Bounce Animation */
+        @keyframes bounce-short {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .animate-bounce-short {
+            animation: bounce-short 0.6s ease infinite;
+        }
+
+        /* Glassmorphism styles */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(226, 232, 240, 0.8);
+        }
+
+        /* Inline Fraction Styling for text contexts (explanations, word problems) */
+        .inline-frac {
+            display: inline-flex;
+            flex-direction: column;
+            text-align: center;
+            vertical-align: middle;
+            line-height: 1.1;
+            margin: 0 2px;
+            font-size: 0.9em;
+        }
+        .inline-frac-num {
+            border-bottom: 1.5px solid #334155;
+            padding: 0 2px 1px 2px;
+            font-weight: 700;
+            color: #2563eb;
+        }
+        .inline-frac-den {
+            padding: 1px 2px 0 2px;
+            font-weight: 700;
+            color: #d97706;
+        }
+        .inline-mixed-whole {
+            font-weight: 800;
+            margin-right: 2px;
+            color: #1e293b;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between">
+
+    <div id="app" class="flex-grow flex flex-col max-w-5xl w-full mx-auto p-3 sm:p-6">
+        
+        <!-- Header Bar -->
+        <header class="glass-card rounded-2xl p-4 mb-4 shadow-sm flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-amber-500 text-white p-3 rounded-xl shadow-md text-xl">
+                    <i class="fa-solid fa-shapes"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-black text-slate-800 tracking-wide">
+                        香港小學五年級 - 分數加減挑戰站
+                    </h1>
+                    <p class="text-xs sm:text-sm text-slate-500 font-semibold">香港小學數學 P5 專用練習網</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Score & Stars (In Game) -->
+                <div v-if="gameState !== 'menu'" class="flex items-center gap-3 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl">
+                    <div class="flex items-center gap-1 text-amber-500 font-extrabold text-lg">
+                        <i class="fa-solid fa-star"></i>
+                        <span class="font-num">{{ score }}</span>
+                    </div>
+                    <div class="hidden sm:block text-xs font-bold text-amber-700 bg-amber-200/60 px-2 py-0.5 rounded-md">
+                        連勝 x{{ combo }}
+                    </div>
+                </div>
+
+                <!-- Return to Menu Button -->
+                <button v-if="gameState !== 'menu'" @click="returnToMenu" class="px-3 py-2 sm:px-4 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition font-bold text-sm flex items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-arrow-left"></i> <span class="hidden sm:inline">返回</span>
+                </button>
+
+                <!-- Sound Toggle -->
+                <button @click="toggleSound" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition shadow-sm border border-slate-200">
+                    <i class="fa-solid" :class="soundOn ? 'fa-volume-high text-emerald-600' : 'fa-volume-xmark text-slate-400'"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- MENU STATE -->
+        <main v-if="gameState === 'menu'" class="flex-grow flex flex-col justify-center my-auto">
+            <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-xl text-center space-y-6">
+                
+                <div class="inline-block bg-emerald-100 text-emerald-800 px-4 py-1.5 rounded-full text-sm font-bold tracking-wide mb-2">
+                    <i class="fa-solid fa-graduation-cap mr-1"></i> 契合教育局小學數學課程指引 (P5)
+                </div>
+
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-800">
+                    選擇挑戰關卡
+                </h2>
+                <p class="text-slate-600 max-w-lg mx-auto text-sm sm:text-base">
+                    掌握異分母通分（LCM）、帶分數借位與小五應用題，成為分數小霸王！
+                </p>
+
+                <!-- Level Select Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+                    <!-- Level 1 -->
+                    <button @click="startGame(1)" class="p-5 rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-white hover:border-emerald-500 hover:shadow-lg transition group relative overflow-hidden">
+                        <div class="flex items-start justify-between">
+                            <span class="text-xs font-bold bg-emerald-500 text-white px-2.5 py-1 rounded-lg">第 1 關</span>
+                            <i class="fa-solid fa-plus-minus text-2xl text-emerald-400 group-hover:scale-110 transition"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-800 mt-3">異分母真分數加減</h3>
+                        <p class="text-xs text-slate-500 mt-1">基礎通分練習：如 1/4 + 2/3、5/6 - 1/2</p>
+                    </button>
+
+                    <!-- Level 2 -->
+                    <button @click="startGame(2)" class="p-5 rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white hover:border-blue-500 hover:shadow-lg transition group relative overflow-hidden">
+                        <div class="flex items-start justify-between">
+                            <span class="text-xs font-bold bg-blue-500 text-white px-2.5 py-1 rounded-lg">第 2 關</span>
+                            <i class="fa-solid fa-layer-group text-2xl text-blue-400 group-hover:scale-110 transition"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-800 mt-3">帶分數加減與借位</h3>
+                        <p class="text-xs text-slate-500 mt-1">包含退位減法：如 3 1/4 - 1 5/6</p>
+                    </button>
+
+                    <!-- Level 3 -->
+                    <button @click="startGame(3)" class="p-5 rounded-2xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white hover:border-purple-500 hover:shadow-lg transition group relative overflow-hidden">
+                        <div class="flex items-start justify-between">
+                            <span class="text-xs font-bold bg-purple-500 text-white px-2.5 py-1 rounded-lg">第 3 關</span>
+                            <i class="fa-solid fa-calculator text-2xl text-purple-400 group-hover:scale-110 transition"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-800 mt-3">三分數混合計算</h3>
+                        <p class="text-xs text-slate-500 mt-1">三個分數加減混合：如 1 1/2 + 2/3 - 5/6</p>
+                    </button>
+
+                    <!-- Level 4 -->
+                    <button @click="startGame(4)" class="p-5 rounded-2xl border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-white hover:border-amber-500 hover:shadow-lg transition group relative overflow-hidden">
+                        <div class="flex items-start justify-between">
+                            <span class="text-xs font-bold bg-amber-500 text-white px-2.5 py-1 rounded-lg">第 4 關</span>
+                            <i class="fa-solid fa-utensils text-2xl text-amber-400 group-hover:scale-110 transition"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-800 mt-3">香港情境應用題</h3>
+                        <p class="text-xs text-slate-500 mt-1">生活數學：蛋撻、果汁、跑步距離計算</p>
+                    </button>
+                </div>
+
+                <!-- Game Mode Options -->
+                <div class="pt-4 border-t border-slate-200 flex flex-wrap justify-center gap-6 text-sm font-semibold">
+                    <label class="flex items-center gap-2 cursor-pointer select-none">
+                        <input type="checkbox" v-model="timerEnabled" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
+                        <span>開啟倒數計時（每題 45 秒）</span>
+                    </label>
+                </div>
+            </div>
+        </main>
+
+        <!-- PLAYING STATE -->
+        <main v-if="gameState === 'playing'" class="flex-grow flex flex-col my-auto w-full">
+            
+            <!-- Progress Bar & Question Counter -->
+            <div class="mb-4">
+                <div class="flex justify-between items-center text-xs sm:text-sm font-bold text-slate-600 mb-1">
+                    <span>進度：題目 {{ currentQuestionIndex + 1 }} / {{ totalQuestions }}</span>
+                    <span v-if="timerEnabled" :class="timeLeft <= 10 ? 'text-rose-600 animate-pulse font-extrabold' : ''">
+                        <i class="fa-regular fa-clock mr-1"></i> {{ timeLeft }} 秒
+                    </span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden shadow-inner">
+                    <div class="bg-gradient-to-r from-emerald-400 to-teal-500 h-3 rounded-full transition-all duration-300" 
+                         :style="{ width: ((currentQuestionIndex + 1) / totalQuestions * 100) + '%' }"></div>
+                </div>
+            </div>
+
+            <!-- Two Column Layout for Desktop -->
+            <div class="flex flex-col lg:flex-row gap-4 sm:gap-6 flex-grow">
+                
+                <!-- Left Column: Main Question -->
+                <div class="flex-grow lg:w-2/3 flex flex-col gap-4">
+                    <!-- Main Question Card -->
+                    <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-xl text-center flex-grow flex flex-col justify-center relative overflow-hidden">
+                        
+                        <!-- Question Text / Fraction Equation -->
+                        <div class="py-4">
+                            <!-- Word Problem Text if applicable -->
+                            <div v-if="currentQ.isWordProblem" class="mb-6 text-base sm:text-lg text-slate-700 bg-emerald-50/70 border border-emerald-100 p-4 rounded-2xl text-left leading-relaxed">
+                                <i class="fa-solid fa-book-open text-emerald-600 mr-2"></i>
+                                <span v-html="formatTextFractions(currentQ.wordProblemText)"></span>
+                            </div>
+
+                            <!-- Fraction Equation Display -->
+                            <div class="text-2xl sm:text-4xl font-extrabold text-slate-800 flex flex-wrap items-center justify-center gap-2 sm:gap-4 q-large">
+                                <template v-for="(item, idx) in currentQ.equationParts" :key="idx">
+                                    <!-- Operator -->
+                                    <span v-if="item.type === 'op'" class="text-emerald-600 px-1">{{ item.value }}</span>
+                                    <!-- Fraction -->
+                                    <div v-else-if="item.type === 'frac'" class="frac-container">
+                                        <span v-if="item.whole" class="frac-whole">{{ item.whole }}</span>
+                                        <div class="frac-stacked">
+                                            <span class="frac-num">{{ item.num }}</span>
+                                            <span class="frac-den">{{ item.den }}</span>
+                                        </div>
+                                    </div>
+                                </template>
+                                <span class="text-slate-400 font-bold ml-2">= ?</span>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-6 font-semibold">（注意：答案必須約至最簡分數或帶分數）</p>
+                        </div>
+                    </div>
+
+                    <!-- Answer Choices Area -->
+                    <div class="glass-card rounded-3xl p-6 shadow-xl">
+                        <!-- Answer Choices Grid (4 Choices) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                            <button v-for="(choice, idx) in currentQ.options" :key="idx"
+                                    @click="selectAnswer(choice)"
+                                    :disabled="selectedChoice !== null"
+                                    class="p-4 rounded-2xl border-2 text-left font-bold transition-all transform active:scale-95 flex items-center justify-between"
+                                    :class="getChoiceClass(choice)">
+                                <div class="flex items-center gap-3">
+                                    <span class="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-sm font-extrabold shadow-inner">
+                                        {{ ['A', 'B', 'C', 'D'][idx] }}
+                                    </span>
+                                    <!-- Render Formatted Fraction Choice -->
+                                    <div class="text-lg sm:text-xl">
+                                        <div v-if="choice.whole === 0 && choice.num === 0" class="font-bold">0</div>
+                                        <div v-else-if="choice.den === 1" class="font-bold">{{ choice.num }}</div>
+                                        <div v-else class="frac-container">
+                                            <span v-if="choice.whole" class="frac-whole">{{ choice.whole }}</span>
+                                            <div class="frac-stacked">
+                                                <span class="frac-num">{{ choice.num }}</span>
+                                                <span class="frac-den">{{ choice.den }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Feedback Icon -->
+                                <div v-if="selectedChoice === choice">
+                                    <i v-if="choice.isCorrect" class="fa-solid fa-circle-check text-2xl text-emerald-500"></i>
+                                    <i v-else class="fa-solid fa-circle-xmark text-2xl text-rose-500"></i>
+                                </div>
+                            </button>
+                        </div>
+
+                        <!-- Explanation / Next Step Bar -->
+                        <div v-if="selectedChoice !== null" class="mt-4 p-4 rounded-2xl border-l-8 flex flex-col sm:flex-row justify-between items-center gap-3 animate-fade-in"
+                             :class="selectedChoice.isCorrect ? 'border-l-emerald-500 bg-emerald-50/90' : 'border-l-rose-500 bg-rose-50/90'">
+                            <div class="text-sm">
+                                <p class="font-bold text-base" :class="selectedChoice.isCorrect ? 'text-emerald-800' : 'text-rose-800'">
+                                    {{ selectedChoice.isCorrect ? '🎉 答對了！太棒了！' : '❌ 答錯了，請查看下方正確解法：' }}
+                                </p>
+                                <p class="text-slate-600 text-xs sm:text-sm mt-0.5 leading-relaxed">
+                                    <span class="font-bold">正確通分/計算步驟：</span> <span v-html="formatTextFractions(currentQ.explanation)"></span>
+                                </p>
+                            </div>
+                            <button @click="nextQuestion" class="w-full sm:w-auto px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl shadow-md transition whitespace-nowrap">
+                                下一題 <i class="fa-solid fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Hint Panel -->
+                <div class="lg:w-1/3 flex flex-col">
+                    <div class="glass-card rounded-3xl p-5 sm:p-6 shadow-xl h-full border border-amber-200/60 bg-amber-50/40 flex flex-col">
+                        <div class="flex items-center gap-2 text-amber-600 font-bold text-lg mb-4 pb-2 border-b border-amber-200/50">
+                            <i class="fa-solid fa-lightbulb"></i>
+                            <h3>解題小幫手</h3>
+                        </div>
+
+                        <div class="space-y-4 text-sm text-slate-600 leading-relaxed overflow-y-auto">
+                            <div class="bg-white/80 p-3.5 rounded-xl border border-amber-100 shadow-sm">
+                                <p class="font-bold text-amber-800 mb-1">💡 步驟 1：找分母的最小公倍數 (LCM)</p>
+                                <p>本題分母為：<span class="font-bold text-slate-800">{{ currentQ.denominators.join('、') }}</span></p>
+                                <p>最小公倍數 (LCM) 是：<span class="font-bold text-emerald-600 text-base">{{ currentQ.lcm }}</span></p>
+                            </div>
+
+                            <div class="bg-white/80 p-3.5 rounded-xl border border-blue-100 shadow-sm">
+                                <p class="font-bold text-blue-800 mb-1">💡 步驟 2：進行通分</p>
+                                <p>將所有分數化為以 <span class="font-bold">{{ currentQ.lcm }}</span> 為分母的等值分數，再進行分子的加減作業。</p>
+                            </div>
+
+                            <div class="bg-white/80 p-3.5 rounded-xl border border-emerald-100 shadow-sm">
+                                <p class="font-bold text-emerald-800 mb-1">💡 步驟 3：記得約至最簡</p>
+                                <p>計算後若分子分母有公因數，務必約簡；若為假分數，需轉為帶分數。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </main>
+
+        <!-- SUMMARY STATE -->
+        <main v-if="gameState === 'summary'" class="flex-grow flex flex-col justify-center my-auto">
+            <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-xl text-center space-y-6">
+                
+                <div class="w-20 h-20 bg-amber-100 text-amber-500 rounded-3xl flex items-center justify-center text-4xl mx-auto shadow-inner animate-bounce-short">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+
+                <div>
+                    <h2 class="text-3xl font-black text-slate-800">挑戰完成！</h2>
+                    <p class="text-slate-500 text-sm mt-1">小五分數加減修練結算</p>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-3 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <div>
+                        <p class="text-xs text-slate-400 font-bold">總得分</p>
+                        <p class="text-2xl font-black text-amber-500 font-num">{{ score }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-bold">正確率</p>
+                        <p class="text-2xl font-black text-emerald-600 font-num">{{ Math.round((correctCount / totalQuestions) * 100) }}%</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-bold">最高連勝</p>
+                        <p class="text-2xl font-black text-blue-600 font-num">{{ maxCombo }}</p>
+                    </div>
+                </div>
+
+                <!-- Evaluative Feedback Message -->
+                <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl text-emerald-900 text-sm font-semibold">
+                    {{ getPerformanceFeedback() }}
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                    <button @click="startGame(currentLevel)" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition">
+                        <i class="fa-solid fa-rotate-right mr-1"></i> 再挑戰一次
+                    </button>
+                    <button @click="gameState = 'menu'" class="flex-1 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition">
+                        <i class="fa-solid fa-house mr-1"></i> 返回主選單
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-6 text-center text-xs text-slate-400 font-semibold py-2">
+            香港小學數學課程五年級範疇：數與代數（分數加減、帶分數計算及應用）
+        </footer>
+
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    gameState: 'menu', // 'menu', 'playing', 'summary'
+                    currentLevel: 1,
+                    soundOn: true,
+                    timerEnabled: true,
+                    totalQuestions: 8,
+                    currentQuestionIndex: 0,
+                    questions: [],
+                    currentQ: {},
+                    selectedChoice: null,
+                    score: 0,
+                    combo: 0,
+                    maxCombo: 0,
+                    correctCount: 0,
+                    showHint: false,
+                    timeLeft: 45,
+                    timerInterval: null,
+                    audioCtx: null
+                }
+            },
+            methods: {
+                initAudio() {
+                    if (!this.audioCtx) {
+                        const AudioContext = window.AudioContext || window.webkitAudioContext;
+                        this.audioCtx = new AudioContext();
+                    }
+                },
+                playSound(type) {
+                    if (!this.soundOn) return;
+                    this.initAudio();
+                    
+                    try {
+                        const ctx = this.audioCtx;
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+
+                        if (type === 'correct') {
+                            osc.type = 'triangle';
+                            osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+                            osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // E5
+                            osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2); // G5
+                            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                            osc.start();
+                            osc.stop(ctx.currentTime + 0.4);
+                        } else if (type === 'wrong') {
+                            osc.type = 'sawtooth';
+                            osc.frequency.setValueAtTime(220, ctx.currentTime); // A3
+                            osc.frequency.setValueAtTime(180, ctx.currentTime + 0.15);
+                            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+                            osc.start();
+                            osc.stop(ctx.currentTime + 0.35);
+                        } else if (type === 'click') {
+                            osc.type = 'sine';
+                            osc.frequency.setValueAtTime(400, ctx.currentTime);
+                            gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+                            osc.start();
+                            osc.stop(ctx.currentTime + 0.08);
+                        }
+                    } catch (e) {
+                        console.log('Audio playback error', e);
+                    }
+                },
+                toggleSound() {
+                    this.soundOn = !this.soundOn;
+                },
+
+                // Return to Main Menu safely
+                returnToMenu() {
+                    this.playSound('click');
+                    clearInterval(this.timerInterval);
+                    this.gameState = 'menu';
+                },
+
+                // Convert "1 1/2" or "1/2" text into HTML structure for display
+                formatTextFractions(text) {
+                    if (!text) return '';
+                    
+                    // Regex to match mixed numbers (e.g., "1 2/3")
+                    let formattedText = text.replace(/(\d+)\s+(\d+)\/(\d+)/g, (match, whole, num, den) => {
+                        return `<span class="inline-flex items-center align-middle mx-1">
+                                    <span class="inline-mixed-whole">${whole}</span>
+                                    <span class="inline-frac">
+                                        <span class="inline-frac-num">${num}</span>
+                                        <span class="inline-frac-den">${den}</span>
+                                    </span>
+                                </span>`;
+                    });
+
+                    // Regex to match simple fractions (e.g., "1/2"), avoiding URLs if any exist
+                    formattedText = formattedText.replace(/(?<!\d\s)(\b\d+)\/(\d+\b)/g, (match, num, den) => {
+                        return `<span class="inline-frac">
+                                    <span class="inline-frac-num">${num}</span>
+                                    <span class="inline-frac-den">${den}</span>
+                                </span>`;
+                    });
+
+                    return formattedText;
+                },
+
+                // Greatest Common Divisor
+                gcd(a, b) {
+                    return b === 0 ? Math.abs(a) : this.gcd(b, a % b);
+                },
+                // Least Common Multiple
+                lcm(a, b) {
+                    if (a === 0 || b === 0) return 0;
+                    return Math.abs((a * b) / this.gcd(a, b));
+                },
+                // Simplify fraction to { whole, num, den }
+                simplifyFraction(num, den) {
+                    if (num === 0) return { whole: 0, num: 0, den: 1 };
+                    const common = this.gcd(num, den);
+                    let n = num / common;
+                    let d = den / common;
+                    
+                    let whole = Math.floor(n / d);
+                    let remNum = n % d;
+                    return { whole, num: remNum, den: d, totalNum: n };
+                },
+
+                generateOptions(correctVal) {
+                    const options = [];
+                    options.push({
+                        ...correctVal,
+                        isCorrect: true
+                    });
+
+                    // Common mistakes distractors:
+                    let d1Num = correctVal.num + 1;
+                    let d1Den = correctVal.den;
+                    options.push({ whole: correctVal.whole, num: d1Num, den: d1Den, isCorrect: false });
+
+                    let d2Num = Math.max(1, correctVal.num - 1);
+                    let d2Whole = correctVal.num === 0 ? Math.max(0, correctVal.whole - 1) : correctVal.whole;
+                    options.push({ whole: d2Whole, num: d2Num, den: correctVal.den, isCorrect: false });
+
+                    let d3Whole = correctVal.whole + (Math.random() > 0.5 ? 1 : 0);
+                    let d3Num = Math.max(1, correctVal.num + 2);
+                    options.push({ whole: d3Whole, num: d3Num, den: correctVal.den + 2, isCorrect: false });
+
+                    // Sanitize & Shuffle options
+                    const cleanedOptions = options.map(opt => {
+                        if (opt.num >= opt.den && opt.den > 1) {
+                            const extra = Math.floor(opt.num / opt.den);
+                            opt.whole += extra;
+                            opt.num = opt.num % opt.den;
+                        }
+                        if (opt.num === 0) opt.den = 1;
+                        return opt;
+                    });
+
+                    const uniqueOptions = [];
+                    const seen = new Set();
+
+                    for (let opt of cleanedOptions) {
+                        const key = `${opt.whole}-${opt.num}-${opt.den}`;
+                        if (!seen.has(key)) {
+                            seen.add(key);
+                            uniqueOptions.push(opt);
+                        } else {
+                            const altOpt = { ...opt, num: opt.num + 1, key: key + '-alt' };
+                            uniqueOptions.push(altOpt);
+                        }
+                    }
+
+                    while (uniqueOptions.length < 4) {
+                        uniqueOptions.push({
+                            whole: correctVal.whole,
+                            num: uniqueOptions.length + 1,
+                            den: correctVal.den + 3,
+                            isCorrect: false
+                        });
+                    }
+
+                    for (let i = uniqueOptions.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [uniqueOptions[i], uniqueOptions[j]] = [uniqueOptions[j], uniqueOptions[i]];
+                    }
+
+                    return uniqueOptions.slice(0, 4);
+                },
+
+                generateQuestion(level) {
+                    let num1, den1, num2, den2, num3, den3;
+                    let whole1 = 0, whole2 = 0;
+                    let op1 = '+';
+                    let explanation = '';
+
+                    const dens = [2, 3, 4, 5, 6, 8, 9, 10, 12];
+
+                    if (level === 1) {
+                        den1 = dens[Math.floor(Math.random() * dens.length)];
+                        do {
+                            den2 = dens[Math.floor(Math.random() * dens.length)];
+                        } while (den1 === den2);
+
+                        num1 = Math.floor(Math.random() * (den1 - 1)) + 1;
+                        num2 = Math.floor(Math.random() * (den2 - 1)) + 1;
+                        op1 = Math.random() > 0.5 ? '+' : '-';
+
+                        if (op1 === '-' && (num1 / den1 < num2 / den2)) {
+                            [num1, num2] = [num2, num1];
+                            [den1, den2] = [den2, den1];
+                        }
+
+                        const commonDen = this.lcm(den1, den2);
+                        const convertNum1 = num1 * (commonDen / den1);
+                        const convertNum2 = num2 * (commonDen / den2);
+                        const resultNum = op1 === '+' ? convertNum1 + convertNum2 : convertNum1 - convertNum2;
+                        
+                        const ans = this.simplifyFraction(resultNum, commonDen);
+                        
+                        explanation = `最小公倍數 LCM(${den1}, ${den2}) = ${commonDen}。` +
+                            `通分後：${convertNum1}/${commonDen} ${op1} ${convertNum2}/${commonDen} = ${resultNum}/${commonDen}` +
+                            (ans.whole > 0 ? ` = ${ans.whole} 帶分數 ${ans.num}/${ans.den}` : `約簡後為 ${ans.num}/${ans.den}`);
+
+                        return {
+                            isWordProblem: false,
+                            equationParts: [
+                                { type: 'frac', whole: 0, num: num1, den: den1 },
+                                { type: 'op', value: op1 },
+                                { type: 'frac', whole: 0, num: num2, den: den2 }
+                            ],
+                            denominators: [den1, den2],
+                            lcm: commonDen,
+                            correctVal: ans,
+                            explanation: explanation,
+                            options: this.generateOptions(ans)
+                        };
+
+                    } else if (level === 2) {
+                        den1 = [3, 4, 5, 6, 8, 10, 12][Math.floor(Math.random() * 7)];
+                        do {
+                            den2 = [2, 3, 4, 5, 6, 8, 10, 12][Math.floor(Math.random() * 8)];
+                        } while (den1 === den2);
+
+                        whole1 = Math.floor(Math.random() * 3) + 2; 
+                        whole2 = Math.floor(Math.random() * (whole1 - 1)) + 1; 
+
+                        num1 = 1; 
+                        num2 = den2 - 1; 
+                        op1 = '-';
+
+                        const commonDen = this.lcm(den1, den2);
+                        const totalNum1 = (whole1 * den1 + num1) * (commonDen / den1);
+                        const totalNum2 = (whole2 * den2 + num2) * (commonDen / den2);
+                        const resNum = totalNum1 - totalNum2;
+
+                        const ans = this.simplifyFraction(resNum, commonDen);
+
+                        explanation = `LCM(${den1}, ${den2}) = ${commonDen}。` +
+                            `通分並借位：${whole1} ${num1 * (commonDen / den1)}/${commonDen} - ${whole2} ${num2 * (commonDen / den2)}/${commonDen}` +
+                            ` = 最簡結果 ${ans.whole ? ans.whole + ' 又 ' : ''}${ans.num}/${ans.den}`;
+
+                        return {
+                            isWordProblem: false,
+                            equationParts: [
+                                { type: 'frac', whole: whole1, num: num1, den: den1 },
+                                { type: 'op', value: '-' },
+                                { type: 'frac', whole: whole2, num: num2, den: den2 }
+                            ],
+                            denominators: [den1, den2],
+                            lcm: commonDen,
+                            correctVal: ans,
+                            explanation: explanation,
+                            options: this.generateOptions(ans)
+                        };
+
+                    } else if (level === 3) {
+                        const sets = [ { d: [2, 3, 6], lcm: 6 }, { d: [2, 4, 8], lcm: 8 }, { d: [3, 4, 12], lcm: 12 }, { d: [2, 5, 10], lcm: 10 } ];
+                        const set = sets[Math.floor(Math.random() * sets.length)];
+                        den1 = set.d[0]; den2 = set.d[1]; den3 = set.d[2];
+                        whole1 = Math.floor(Math.random() * 2) + 1; 
+                        num1 = Math.floor(Math.random() * (den1 - 1)) + 1;
+                        num2 = Math.floor(Math.random() * (den2 - 1)) + 1;
+                        num3 = Math.floor(Math.random() * (den3 - 1)) + 1;
+                        const commonDen = set.lcm;
+                        
+                        const t1 = (whole1 * commonDen) + (num1 * (commonDen / den1));
+                        const t2 = num2 * (commonDen / den2);
+                        const t3 = num3 * (commonDen / den3);
+                        const totalNum = t1 + t2 - t3;
+                        const ans = this.simplifyFraction(totalNum, commonDen);
+
+                        explanation = `三個分數通分至分母 ${commonDen}，計算結果化簡後為 ${ans.whole ? ans.whole + ' 又 ' : ''}${ans.num}/${ans.den}。`;
+
+                        return {
+                            isWordProblem: false,
+                            equationParts: [
+                                { type: 'frac', whole: whole1, num: num1, den: den1 },
+                                { type: 'op', value: '+' },
+                                { type: 'frac', whole: 0, num: num2, den: den2 },
+                                { type: 'op', value: '-' },
+                                { type: 'frac', whole: 0, num: num3, den: den3 }
+                            ],
+                            denominators: [den1, den2, den3],
+                            lcm: commonDen,
+                            correctVal: ans,
+                            explanation: explanation,
+                            options: this.generateOptions(ans)
+                        };
+
+                    } else {
+                        const n1 = Math.floor(Math.random() * 3) + 1; 
+                        const n2_w = Math.floor(Math.random() * 2) + 1; 
+                        const n2_n = Math.floor(Math.random() * 2) + 1; 
+                        
+                        const hkScenarios = [
+                            {
+                                text: `媽媽買了一袋菠蘿包，小明吃了 ${n1}/8 袋，妹妹吃了 1/4 袋。二人共吃了全袋菠蘿包的幾分之幾？`,
+                                eqParts: [
+                                    { type: 'frac', whole: 0, num: n1, den: 8 },
+                                    { type: 'op', value: '+' },
+                                    { type: 'frac', whole: 0, num: 1, den: 4 }
+                                ],
+                                dens: [8, 4],
+                                lcm: 8,
+                                ans: this.simplifyFraction(n1 + 2, 8),
+                                exp: `${n1}/8 + 1/4 = ${n1}/8 + 2/8 = ${n1 + 2}/8 袋。`
+                            },
+                            {
+                                text: `一瓶 2 升的港式奶茶，爸爸喝了 ${n2_n}/4 升，媽媽喝了 1/6 升。兩人一共喝了幾升奶茶？`,
+                                eqParts: [
+                                    { type: 'frac', whole: 0, num: n2_n, den: 4 },
+                                    { type: 'op', value: '+' },
+                                    { type: 'frac', whole: 0, num: 1, den: 6 }
+                                ],
+                                dens: [4, 6],
+                                lcm: 12,
+                                ans: this.simplifyFraction(n2_n * 3 + 2, 12),
+                                exp: `${n2_n}/4 + 1/6 = ${n2_n * 3}/12 + 2/12 = ${n2_n * 3 + 2}/12 升。`
+                            },
+                            {
+                                text: `小華沿中環海濱長廊跑步，早上跑了 ${n2_w} 1/2 公里，下午比早上少跑了 3/4 公里。小華下午跑了多少公里？`,
+                                eqParts: [
+                                    { type: 'frac', whole: n2_w, num: 1, den: 2 },
+                                    { type: 'op', value: '-' },
+                                    { type: 'frac', whole: 0, num: 3, den: 4 }
+                                ],
+                                dens: [2, 4],
+                                lcm: 4,
+                                ans: this.simplifyFraction(n2_w * 4 + 2 - 3, 4),
+                                exp: `${n2_w} 1/2 - 3/4 = ${n2_w} 2/4 - 3/4 = ${n2_w - 1} 6/4 - 3/4 = ${n2_w - 1} 3/4 公里。`
+                            }
+                        ];
+
+                        const picked = hkScenarios[Math.floor(Math.random() * hkScenarios.length)];
+                        return {
+                            isWordProblem: true,
+                            wordProblemText: picked.text,
+                            equationParts: picked.eqParts,
+                            denominators: picked.dens,
+                            lcm: picked.lcm,
+                            correctVal: picked.ans,
+                            explanation: picked.exp,
+                            options: this.generateOptions(picked.ans)
+                        };
+                    }
+                },
+
+                startGame(level) {
+                    this.playSound('click');
+                    this.currentLevel = level;
+                    this.score = 0;
+                    this.combo = 0;
+                    this.maxCombo = 0;
+                    this.correctCount = 0;
+                    this.currentQuestionIndex = 0;
+
+                    this.questions = [];
+                    for (let i = 0; i < this.totalQuestions; i++) {
+                        this.questions.push(this.generateQuestion(level));
+                    }
+
+                    this.currentQ = this.questions[0];
+                    this.selectedChoice = null;
+                    this.gameState = 'playing';
+
+                    if (this.timerEnabled) {
+                        this.startTimer();
+                    }
+                },
+
+                startTimer() {
+                    clearInterval(this.timerInterval);
+                    this.timeLeft = 45;
+                    this.timerInterval = setInterval(() => {
+                        this.timeLeft--;
+                        if (this.timeLeft <= 0) {
+                            clearInterval(this.timerInterval);
+                            if (this.selectedChoice === null) {
+                                this.selectAnswer({ isCorrect: false, whole: 0, num: 0, den: 1 });
+                            }
+                        }
+                    }, 1000);
+                },
+
+                selectAnswer(choice) {
+                    if (this.selectedChoice !== null) return;
+                    clearInterval(this.timerInterval);
+
+                    this.selectedChoice = choice;
+
+                    if (choice.isCorrect) {
+                        this.playSound('correct');
+                        this.correctCount++;
+                        this.combo++;
+                        if (this.combo > this.maxCombo) this.maxCombo = this.combo;
+                        
+                        const timeBonus = this.timerEnabled ? this.timeLeft * 2 : 0;
+                        this.score += 100 + (this.combo * 20) + timeBonus;
+
+                        if (this.combo % 3 === 0 && typeof confetti === 'function') {
+                            confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+                        }
+                    } else {
+                        this.playSound('wrong');
+                        this.combo = 0;
+                    }
+                },
+
+                getChoiceClass(choice) {
+                    if (this.selectedChoice === null) {
+                        return 'border-slate-200 bg-white hover:border-emerald-400 hover:bg-emerald-50/50 shadow-sm';
+                    }
+                    if (choice === this.selectedChoice) {
+                        return choice.isCorrect 
+                            ? 'border-emerald-500 bg-emerald-100 text-emerald-900 shadow-md'
+                            : 'border-rose-500 bg-rose-100 text-rose-900 shadow-md';
+                    }
+                    if (choice.isCorrect) {
+                        return 'border-emerald-400 bg-emerald-50 text-emerald-800 font-bold';
+                    }
+                    return 'border-slate-100 bg-slate-50 opacity-40';
+                },
+
+                nextQuestion() {
+                    this.playSound('click');
+                    this.selectedChoice = null;
+                    this.currentQuestionIndex++;
+
+                    if (this.currentQuestionIndex < this.totalQuestions) {
+                        this.currentQ = this.questions[this.currentQuestionIndex];
+                        if (this.timerEnabled) this.startTimer();
+                    } else {
+                        this.gameState = 'summary';
+                        if (typeof confetti === 'function' && this.correctCount >= 5) {
+                            confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+                        }
+                    }
+                },
+
+                getPerformanceFeedback() {
+                    const ratio = this.correctCount / this.totalQuestions;
+                    if (ratio === 1) return '🌟 完美太厲害了！你完全掌握了小五異分母與帶分數加減計算！';
+                    if (ratio >= 0.75) return '🎉 表現非常出色！通分與約簡概念很清晰，繼續保持！';
+                    if (ratio >= 0.5) return '👍 做得好！再多注意借位與約至最簡分數的步驟會更棒！';
+                    return '💪 別灰心！建議點擊「解題提示」多觀察通分（LCM）步驟，再試一次吧！';
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
