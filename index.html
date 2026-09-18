@@ -108,12 +108,13 @@
 </head>
 <body class="min-h-screen text-slate-800 flex flex-col justify-between">
 
-    <div id="app" class="flex-grow flex flex-col max-w-5xl w-full mx-auto p-3 sm:p-6">
+    <!-- Expanded max-w to accommodate side-by-side layout nicely -->
+    <div id="app" class="flex-grow flex flex-col max-w-6xl w-full mx-auto p-3 sm:p-6">
         
         <!-- Header Bar -->
-        <header class="glass-card rounded-2xl p-4 mb-4 shadow-sm flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="bg-amber-500 text-white p-3 rounded-xl shadow-md text-xl">
+        <header class="glass-card rounded-2xl p-4 mb-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <div class="bg-amber-500 text-white p-3 rounded-xl shadow-md text-xl shrink-0">
                     <i class="fa-solid fa-shapes"></i>
                 </div>
                 <div>
@@ -124,7 +125,7 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-2 sm:gap-3">
+            <div class="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto sm:ml-0">
                 <!-- Score & Stars (In Game) -->
                 <div v-if="gameState !== 'menu'" class="flex items-center gap-3 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl">
                     <div class="flex items-center gap-1 text-amber-500 font-extrabold text-lg">
@@ -137,7 +138,7 @@
                 </div>
 
                 <!-- Return to Menu Button -->
-                <button v-if="gameState !== 'menu'" @click="returnToMenu" class="px-3 py-2 sm:px-4 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition font-bold text-sm flex items-center gap-2 shadow-sm">
+                <button v-if="gameState !== 'menu'" @click="returnToMenu" class="px-3 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition font-bold text-sm flex items-center gap-2 shadow-sm">
                     <i class="fa-solid fa-arrow-left"></i> <span class="hidden sm:inline">返回</span>
                 </button>
 
@@ -148,77 +149,147 @@
             </div>
         </header>
 
-        <!-- MENU STATE -->
-        <main v-if="gameState === 'menu'" class="flex-grow flex flex-col justify-center my-auto">
-            <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-xl text-center space-y-6">
+        <!-- MENU STATE (Split Layout) -->
+        <main v-if="gameState === 'menu'" class="flex-grow flex flex-col my-auto w-full">
+            <div class="flex flex-col lg:flex-row gap-4 sm:gap-6 w-full items-stretch h-full">
                 
-                <div class="inline-block bg-emerald-100 text-emerald-800 px-4 py-1.5 rounded-full text-sm font-bold tracking-wide mb-2">
-                    <i class="fa-solid fa-graduation-cap mr-1"></i> 契合教育局小學數學課程指引 (P5)
+                <!-- Left Side: Level Selection -->
+                <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col justify-center lg:w-7/12">
+                    
+                    <div class="text-center mb-6">
+                        <div class="inline-block bg-emerald-100 text-emerald-800 px-4 py-1.5 rounded-full text-sm font-bold tracking-wide mb-3">
+                            <i class="fa-solid fa-graduation-cap mr-1"></i> 契合教育局小學數學課程指引 (P5)
+                        </div>
+                        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-800">
+                            選擇挑戰關卡
+                        </h2>
+                        <p class="text-slate-600 max-w-sm mx-auto text-sm sm:text-base mt-2">
+                            掌握異分母通分（LCM）、帶分數借位與小五應用題，成為分數小霸王！
+                        </p>
+                    </div>
+
+                    <!-- Level Select Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left mb-6">
+                        <!-- Level 1 -->
+                        <button @click="startGame(1)" class="p-5 rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-white hover:border-emerald-500 hover:shadow-lg transition group relative overflow-hidden text-left">
+                            <div class="flex items-start justify-between">
+                                <span class="text-xs font-bold bg-emerald-500 text-white px-2.5 py-1 rounded-lg">第 1 關</span>
+                                <i class="fa-solid fa-plus-minus text-2xl text-emerald-400 group-hover:scale-110 transition"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mt-3">異分母真分數加減</h3>
+                            <p class="text-xs text-slate-500 mt-1">基礎通分練習：如 1/4 + 2/3、5/6 - 1/2</p>
+                        </button>
+
+                        <!-- Level 2 -->
+                        <button @click="startGame(2)" class="p-5 rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white hover:border-blue-500 hover:shadow-lg transition group relative overflow-hidden text-left">
+                            <div class="flex items-start justify-between">
+                                <span class="text-xs font-bold bg-blue-500 text-white px-2.5 py-1 rounded-lg">第 2 關</span>
+                                <i class="fa-solid fa-layer-group text-2xl text-blue-400 group-hover:scale-110 transition"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mt-3">帶分數加減與借位</h3>
+                            <p class="text-xs text-slate-500 mt-1">包含退位減法：如 3 1/4 - 1 5/6</p>
+                        </button>
+
+                        <!-- Level 3 -->
+                        <button @click="startGame(3)" class="p-5 rounded-2xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white hover:border-purple-500 hover:shadow-lg transition group relative overflow-hidden text-left">
+                            <div class="flex items-start justify-between">
+                                <span class="text-xs font-bold bg-purple-500 text-white px-2.5 py-1 rounded-lg">第 3 關</span>
+                                <i class="fa-solid fa-calculator text-2xl text-purple-400 group-hover:scale-110 transition"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mt-3">三分數混合計算</h3>
+                            <p class="text-xs text-slate-500 mt-1">三個分數加減混合：如 1 1/2 + 2/3 - 5/6</p>
+                        </button>
+
+                        <!-- Level 4 -->
+                        <button @click="startGame(4)" class="p-5 rounded-2xl border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-white hover:border-amber-500 hover:shadow-lg transition group relative overflow-hidden text-left">
+                            <div class="flex items-start justify-between">
+                                <span class="text-xs font-bold bg-amber-500 text-white px-2.5 py-1 rounded-lg">第 4 關</span>
+                                <i class="fa-solid fa-utensils text-2xl text-amber-400 group-hover:scale-110 transition"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mt-3">香港情境應用題</h3>
+                            <p class="text-xs text-slate-500 mt-1">生活數學：蛋撻、果汁、跑步距離計算</p>
+                        </button>
+                    </div>
+
+                    <!-- Game Mode Options -->
+                    <div class="pt-4 border-t border-slate-200 flex flex-wrap justify-center gap-6 text-sm font-semibold">
+                        <label class="flex items-center gap-2 cursor-pointer select-none bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-100 transition">
+                            <input type="checkbox" v-model="timerEnabled" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
+                            <span class="text-slate-700">開啟倒數計時（每題 45 秒）</span>
+                        </label>
+                    </div>
                 </div>
 
-                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-800">
-                    選擇挑戰關卡
-                </h2>
-                <p class="text-slate-600 max-w-lg mx-auto text-sm sm:text-base">
-                    掌握異分母通分（LCM）、帶分數借位與小五應用題，成為分數小霸王！
-                </p>
+                <!-- Right Side: Leaderboard -->
+                <div class="glass-card rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col lg:w-5/12 min-h-[450px]">
+                    <div class="text-center mb-4">
+                        <h2 class="text-xl sm:text-2xl font-black text-slate-800 flex justify-center items-center gap-2">
+                            <i class="fa-solid fa-ranking-star text-amber-500"></i> 全服龍虎榜
+                        </h2>
+                    </div>
 
-                <!-- Level Select Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
-                    <!-- Level 1 -->
-                    <button @click="startGame(1)" class="p-5 rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-white hover:border-emerald-500 hover:shadow-lg transition group relative overflow-hidden">
-                        <div class="flex items-start justify-between">
-                            <span class="text-xs font-bold bg-emerald-500 text-white px-2.5 py-1 rounded-lg">第 1 關</span>
-                            <i class="fa-solid fa-plus-minus text-2xl text-emerald-400 group-hover:scale-110 transition"></i>
+                    <!-- Level Tabs -->
+                    <div class="flex flex-wrap justify-center gap-1.5 mb-3">
+                        <button v-for="lvl in 4" :key="lvl" 
+                                @click="changeLeaderboardTab(lvl)"
+                                :class="leaderboardTab === lvl ? 'bg-amber-500 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                                class="px-3 py-1.5 rounded-lg font-bold transition text-xs sm:text-sm flex-1 whitespace-nowrap">
+                            第 {{ lvl }} 關
+                        </button>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="bg-white rounded-2xl border border-slate-200 overflow-y-auto shadow-inner flex-grow relative min-h-[250px]">
+                        
+                        <!-- Loading Spinner -->
+                        <div v-if="isLoadingBoard" class="absolute inset-0 bg-white/80 flex items-center justify-center z-10 backdrop-blur-sm">
+                            <i class="fa-solid fa-circle-notch fa-spin text-3xl text-amber-500"></i>
                         </div>
-                        <h3 class="text-lg font-bold text-slate-800 mt-3">異分母真分數加減</h3>
-                        <p class="text-xs text-slate-500 mt-1">基礎通分練習：如 1/4 + 2/3、5/6 - 1/2</p>
-                    </button>
 
-                    <!-- Level 2 -->
-                    <button @click="startGame(2)" class="p-5 rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white hover:border-blue-500 hover:shadow-lg transition group relative overflow-hidden">
-                        <div class="flex items-start justify-between">
-                            <span class="text-xs font-bold bg-blue-500 text-white px-2.5 py-1 rounded-lg">第 2 關</span>
-                            <i class="fa-solid fa-layer-group text-2xl text-blue-400 group-hover:scale-110 transition"></i>
+                        <!-- Empty State -->
+                        <div v-else-if="currentLeaderboard.length === 0" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 p-6 text-center">
+                            <i class="fa-solid fa-ghost text-3xl mb-2 opacity-40"></i>
+                            <p class="font-bold text-sm">目前這關還沒有成績</p>
+                            <p class="text-xs mt-0.5">快去挑戰成為第一名吧！</p>
                         </div>
-                        <h3 class="text-lg font-bold text-slate-800 mt-3">帶分數加減與借位</h3>
-                        <p class="text-xs text-slate-500 mt-1">包含退位減法：如 3 1/4 - 1 5/6</p>
-                    </button>
 
-                    <!-- Level 3 -->
-                    <button @click="startGame(3)" class="p-5 rounded-2xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white hover:border-purple-500 hover:shadow-lg transition group relative overflow-hidden">
-                        <div class="flex items-start justify-between">
-                            <span class="text-xs font-bold bg-purple-500 text-white px-2.5 py-1 rounded-lg">第 3 關</span>
-                            <i class="fa-solid fa-calculator text-2xl text-purple-400 group-hover:scale-110 transition"></i>
-                        </div>
-                        <h3 class="text-lg font-bold text-slate-800 mt-3">三分數混合計算</h3>
-                        <p class="text-xs text-slate-500 mt-1">三個分數加減混合：如 1 1/2 + 2/3 - 5/6</p>
-                    </button>
+                        <!-- Scores Table -->
+                        <table v-else class="w-full text-left border-collapse min-w-max text-sm">
+                            <thead class="sticky top-0 bg-slate-50 shadow-sm z-10">
+                                <tr class="border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider">
+                                    <th class="py-2.5 px-2 font-extrabold text-center w-10">排名</th>
+                                    <th class="py-2.5 px-2 font-extrabold">班別</th>
+                                    <th class="py-2.5 px-2 font-extrabold">姓名</th>
+                                    <th class="py-2.5 px-2 font-extrabold text-right">分數</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(record, index) in currentLeaderboard" :key="record.id || index" 
+                                    class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition"
+                                    :class="{'bg-amber-50/60': index === 0, 'bg-slate-100/60': index === 1, 'bg-orange-50/40': index === 2}">
+                                    
+                                    <td class="py-2.5 px-2 text-center font-black">
+                                        <span v-if="index === 0" class="text-lg text-amber-500"><i class="fa-solid fa-medal"></i></span>
+                                        <span v-else-if="index === 1" class="text-lg text-slate-400"><i class="fa-solid fa-medal"></i></span>
+                                        <span v-else-if="index === 2" class="text-lg text-orange-600"><i class="fa-solid fa-medal"></i></span>
+                                        <span v-else class="text-slate-400 text-xs">{{ index + 1 }}</span>
+                                    </td>
+                                    
+                                    <td class="py-2.5 px-2 font-bold text-slate-500 text-xs">
+                                        <span class="bg-slate-200/80 px-1.5 py-0.5 rounded">{{ record.playerClass || '-' }}</span>
+                                    </td>
 
-                    <!-- Level 4 -->
-                    <button @click="startGame(4)" class="p-5 rounded-2xl border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-white hover:border-amber-500 hover:shadow-lg transition group relative overflow-hidden">
-                        <div class="flex items-start justify-between">
-                            <span class="text-xs font-bold bg-amber-500 text-white px-2.5 py-1 rounded-lg">第 4 關</span>
-                            <i class="fa-solid fa-utensils text-2xl text-amber-400 group-hover:scale-110 transition"></i>
-                        </div>
-                        <h3 class="text-lg font-bold text-slate-800 mt-3">香港情境應用題</h3>
-                        <p class="text-xs text-slate-500 mt-1">生活數學：蛋撻、果汁、跑步距離計算</p>
-                    </button>
-                </div>
-
-                <!-- Game Mode Options -->
-                <div class="pt-4 border-t border-slate-200 flex flex-wrap justify-center gap-6 text-sm font-semibold">
-                    <label class="flex items-center gap-2 cursor-pointer select-none">
-                        <input type="checkbox" v-model="timerEnabled" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
-                        <span>開啟倒數計時（每題 45 秒）</span>
-                    </label>
-                </div>
-
-                <!-- Leaderboard Button -->
-                <div class="pt-4 mt-2 border-t border-slate-200">
-                    <button @click="showLeaderboard(1)" class="px-6 py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold rounded-xl transition shadow-sm border border-amber-200 flex items-center gap-2 mx-auto">
-                        <i class="fa-solid fa-trophy"></i> 查看各關龍虎榜
-                    </button>
+                                    <td class="py-2.5 px-2 font-bold text-slate-700 max-w-[80px] sm:max-w-[100px] truncate">
+                                        {{ record.playerName }}
+                                    </td>
+                                    
+                                    <td class="py-2.5 px-2 text-right font-black text-emerald-600 font-num text-base">
+                                        {{ record.score }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
             </div>
@@ -241,13 +312,13 @@
                 </div>
             </div>
 
-            <!-- Two Column Layout for Desktop -->
+            <!-- Two Column Layout for Desktop (Question on Left, Hint on Right) -->
             <div class="flex flex-col lg:flex-row gap-4 sm:gap-6 flex-grow">
                 
                 <!-- Left Column: Main Question -->
                 <div class="flex-grow lg:w-2/3 flex flex-col gap-4">
                     <!-- Main Question Card -->
-                    <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-xl text-center flex-grow flex flex-col justify-center relative overflow-hidden">
+                    <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-xl text-center flex-grow flex flex-col justify-center relative overflow-hidden min-h-[220px]">
                         
                         <!-- Question Text / Fraction Equation -->
                         <div class="py-4">
@@ -257,8 +328,8 @@
                                 <span v-html="formatTextFractions(currentQ.wordProblemText)"></span>
                             </div>
 
-                            <!-- Fraction Equation Display -->
-                            <div class="text-2xl sm:text-4xl font-extrabold text-slate-800 flex flex-wrap items-center justify-center gap-2 sm:gap-4 q-large">
+                            <!-- Fraction Equation Display (Always shows for all levels) -->
+                            <div class="text-3xl sm:text-4xl font-extrabold text-slate-800 flex flex-wrap items-center justify-center gap-2 sm:gap-4 q-large">
                                 <template v-for="(item, idx) in currentQ.equationParts" :key="idx">
                                     <!-- Operator -->
                                     <span v-if="item.type === 'op'" class="text-emerald-600 px-1">{{ item.value }}</span>
@@ -319,7 +390,7 @@
                                 <p class="font-bold text-base" :class="selectedChoice.isCorrect ? 'text-emerald-800' : 'text-rose-800'">
                                     {{ selectedChoice.isCorrect ? '🎉 答對了！太棒了！' : '❌ 答錯了，請查看下方正確解法：' }}
                                 </p>
-                                <p class="text-slate-600 text-xs sm:text-sm mt-0.5 leading-relaxed">
+                                <p class="text-slate-600 text-xs sm:text-sm mt-0.5 leading-relaxed flex flex-wrap items-center gap-1">
                                     <span class="font-bold">正確通分/計算步驟：</span> <span v-html="formatTextFractions(currentQ.explanation)"></span>
                                 </p>
                             </div>
@@ -363,7 +434,7 @@
 
         <!-- SUMMARY STATE -->
         <main v-if="gameState === 'summary'" class="flex-grow flex flex-col justify-center my-auto">
-            <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-xl text-center space-y-6">
+            <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-xl text-center space-y-6 max-w-2xl mx-auto w-full">
                 
                 <div class="w-20 h-20 bg-amber-100 text-amber-500 rounded-3xl flex items-center justify-center text-4xl mx-auto shadow-inner animate-bounce-short">
                     <i class="fa-solid fa-trophy"></i>
@@ -395,110 +466,36 @@
                     {{ getPerformanceFeedback() }}
                 </div>
 
-                <!-- Submit Score Section -->
-                <div v-if="db && !scoreSubmitted && score > 0" class="bg-blue-50 border border-blue-200 p-4 rounded-2xl flex flex-col sm:flex-row gap-3 items-center justify-between text-left animate-fade-in">
-                    <div class="flex-grow w-full">
-                        <p class="text-xs font-bold text-blue-800 mb-1">📝 記錄成績上龍虎榜！</p>
-                        <input v-model="playerName" type="text" placeholder="輸入你的名字 (最多 12 字)" maxlength="12" class="w-full px-3 py-2 rounded-lg border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm font-bold text-slate-700 shadow-inner">
+                <!-- In-Screen Score Upload Form -->
+                <div v-if="score > 0" class="bg-white p-5 rounded-2xl border-2 border-blue-100 shadow-sm text-left animate-fade-in mt-2">
+                    <h3 class="text-base font-black text-slate-800 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-ranking-star text-blue-500"></i> 登記成績上龍虎榜
+                    </h3>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <div class="flex-1">
+                            <label class="block text-xs font-bold text-slate-500 mb-1">班別 (例: 5A)</label>
+                            <input v-model="playerClass" type="text" placeholder="輸入班別" maxlength="5" class="w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 focus:outline-none focus:border-blue-500 bg-slate-50 focus:bg-white text-sm font-bold text-slate-700 transition">
+                        </div>
+                        <div class="flex-1 sm:flex-[2]">
+                            <label class="block text-xs font-bold text-slate-500 mb-1">學生姓名</label>
+                            <input v-model="playerName" type="text" placeholder="輸入真實姓名 (最多12字)" maxlength="12" class="w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 focus:outline-none focus:border-blue-500 bg-slate-50 focus:bg-white text-sm font-bold text-slate-700 transition">
+                        </div>
                     </div>
-                    <button @click="submitScore" :disabled="!playerName.trim()" class="w-full sm:w-auto mt-1 sm:mt-0 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold rounded-xl transition shadow-md whitespace-nowrap self-end">
-                        <i class="fa-solid fa-cloud-arrow-up mr-1"></i> 上傳成績
+                    <button @click="submitScore" :disabled="!playerName.trim() || !playerClass.trim() || isSubmitting" class="w-full mt-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition shadow-md flex justify-center items-center gap-2">
+                        <i v-if="isSubmitting" class="fa-solid fa-circle-notch fa-spin"></i>
+                        <span v-else>確認上傳，返回首頁查看</span>
+                    </button>
+                    <p class="text-[10px] text-center text-slate-400 mt-2 font-semibold">
+                        * 若班別及姓名與之前相同，系統會自動為你更新最高分數！
+                    </p>
+                </div>
+
+                <!-- Action Buttons (If they choose not to upload) -->
+                <div class="pt-2">
+                    <button @click="returnToMenu" class="w-full py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition shadow-sm border border-slate-300">
+                        <i class="fa-solid fa-house mr-1"></i> 不上傳，直接返回首頁
                     </button>
                 </div>
-                <div v-else-if="scoreSubmitted" class="bg-slate-100 p-3 rounded-xl text-slate-600 text-sm font-bold border border-slate-200 animate-fade-in">
-                    <i class="fa-solid fa-check text-emerald-500 mr-1"></i> 成績已成功上傳至龍虎榜！
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="flex flex-col sm:flex-row gap-3 pt-2">
-                    <button @click="gameState = 'menu'" class="flex-1 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition shadow-md">
-                        <i class="fa-solid fa-house mr-1"></i> 返回主選單
-                    </button>
-                </div>
-            </div>
-        </main>
-
-        <!-- LEADERBOARD STATE -->
-        <main v-if="gameState === 'leaderboard'" class="flex-grow flex flex-col justify-center my-auto w-full">
-            <div class="glass-card rounded-3xl p-5 sm:p-8 shadow-xl max-w-2xl mx-auto w-full flex flex-col h-[85vh]">
-                
-                <div class="text-center mb-5">
-                    <h2 class="text-2xl sm:text-3xl font-black text-slate-800 flex justify-center items-center gap-3">
-                        <i class="fa-solid fa-ranking-star text-amber-500"></i> 全服龍虎榜
-                    </h2>
-                    <p class="text-slate-500 text-xs sm:text-sm mt-1">看看誰是分數小霸王！</p>
-                </div>
-
-                <!-- Level Tabs -->
-                <div class="flex flex-wrap justify-center gap-2 mb-4">
-                    <button v-for="lvl in 4" :key="lvl" 
-                            @click="showLeaderboard(lvl)"
-                            :class="leaderboardTab === lvl ? 'bg-amber-500 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
-                            class="px-4 py-2 rounded-xl font-bold transition text-sm flex-1 sm:flex-none whitespace-nowrap">
-                        第 {{ lvl }} 關
-                    </button>
-                </div>
-
-                <!-- Table -->
-                <div class="bg-white rounded-2xl border border-slate-200 overflow-y-auto shadow-inner flex-grow mb-4 relative min-h-[250px]">
-                    
-                    <!-- Loading Spinner -->
-                    <div v-if="isLoadingBoard" class="absolute inset-0 bg-white/80 flex items-center justify-center z-10 backdrop-blur-sm">
-                        <i class="fa-solid fa-circle-notch fa-spin text-4xl text-amber-500"></i>
-                    </div>
-
-                    <!-- Empty State -->
-                    <div v-else-if="currentLeaderboard.length === 0" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 p-6 text-center">
-                        <i class="fa-solid fa-ghost text-4xl mb-3 opacity-40"></i>
-                        <p class="font-bold">目前這關還沒有成績記錄</p>
-                        <p class="text-xs mt-1">快去挑戰成為第一名吧！</p>
-                    </div>
-
-                    <!-- Scores Table -->
-                    <table v-else class="w-full text-left border-collapse">
-                        <thead class="sticky top-0 bg-slate-50 shadow-sm z-10">
-                            <tr class="border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider">
-                                <th class="p-3 font-extrabold text-center w-12 sm:w-16">排名</th>
-                                <th class="p-3 font-extrabold">玩家</th>
-                                <th class="p-3 font-extrabold text-right">分數</th>
-                                <th class="p-3 font-extrabold text-right hidden sm:table-cell">正確率</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="(record, index) in currentLeaderboard" :key="record.id" 
-                                class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition"
-                                :class="{'bg-amber-50/60': index === 0, 'bg-slate-100/60': index === 1, 'bg-orange-50/40': index === 2}">
-                                
-                                <td class="p-3 text-center font-black">
-                                    <span v-if="index === 0" class="text-xl sm:text-2xl text-amber-500"><i class="fa-solid fa-medal"></i></span>
-                                    <span v-else-if="index === 1" class="text-xl sm:text-2xl text-slate-400"><i class="fa-solid fa-medal"></i></span>
-                                    <span v-else-if="index === 2" class="text-xl sm:text-2xl text-orange-600"><i class="fa-solid fa-medal"></i></span>
-                                    <span v-else class="text-slate-400 text-sm">{{ index + 1 }}</span>
-                                </td>
-                                
-                                <td class="p-3 font-bold text-slate-700 text-sm sm:text-base max-w-[120px] truncate">
-                                    {{ record.playerName }}
-                                </td>
-                                
-                                <td class="p-3 text-right font-black text-emerald-600 font-num text-lg">
-                                    {{ record.score }}
-                                </td>
-
-                                <td class="p-3 text-right font-bold text-slate-500 text-sm hidden sm:table-cell font-num">
-                                    {{ record.accuracy }}%
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Bottom Actions -->
-                <div class="flex flex-col sm:flex-row justify-center items-center gap-3 pt-2">
-                    <button @click="gameState = 'menu'" class="w-full sm:w-auto px-8 py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-md">
-                        <i class="fa-solid fa-house"></i> 返回主選單
-                    </button>
-                </div>
-
             </div>
         </main>
 
@@ -509,12 +506,7 @@
 
     </div>
 
-    <!-- Firebase SDK Imports (Using ES Modules) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+    <script>
         const { createApp } = Vue;
 
         createApp({
@@ -533,26 +525,23 @@
                     combo: 0,
                     maxCombo: 0,
                     correctCount: 0,
-                    showHint: false,
                     timeLeft: 45,
                     timerInterval: null,
                     audioCtx: null,
 
-                    // Leaderboard State
+                    // Leaderboard State (GAS Direct Link)
                     gasUrl: 'https://script.google.com/macros/s/AKfycbwx8u2uIt8wF5faTpC9RBr37K_QcaH1TvEYKWEpgBqe1TOydSi7Q5dLCCMT16kQaXtS/exec',
-                    db: null,
-                    auth: null,
-                    user: null,
+                    playerClass: '',
                     playerName: '',
-                    scoreSubmitted: false,
+                    isSubmitting: false,
                     leaderboardTab: 1,
-                    allLeaderboardRecords: [],
                     currentLeaderboard: [],
                     isLoadingBoard: false
                 }
             },
-            async mounted() {
-                await this.initFirebase();
+            mounted() {
+                // Initialize leaderboard when the app loads
+                this.loadLeaderboard();
             },
             methods: {
                 initAudio() {
@@ -574,16 +563,16 @@
 
                         if (type === 'correct') {
                             osc.type = 'triangle';
-                            osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
-                            osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // E5
-                            osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2); // G5
+                            osc.frequency.setValueAtTime(523.25, ctx.currentTime); 
+                            osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); 
+                            osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2); 
                             gain.gain.setValueAtTime(0.3, ctx.currentTime);
                             gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
                             osc.start();
                             osc.stop(ctx.currentTime + 0.4);
                         } else if (type === 'wrong') {
                             osc.type = 'sawtooth';
-                            osc.frequency.setValueAtTime(220, ctx.currentTime); // A3
+                            osc.frequency.setValueAtTime(220, ctx.currentTime); 
                             osc.frequency.setValueAtTime(180, ctx.currentTime + 0.15);
                             gain.gain.setValueAtTime(0.3, ctx.currentTime);
                             gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
@@ -610,13 +599,15 @@
                     this.playSound('click');
                     clearInterval(this.timerInterval);
                     this.gameState = 'menu';
+                    // Optional: refresh leaderboard when returning to menu manually
+                    this.loadLeaderboard();
                 },
 
                 // Convert "1 1/2" or "1/2" text into HTML structure for display
                 formatTextFractions(text) {
                     if (!text) return '';
                     
-                    // Regex to match mixed numbers (e.g., "1 2/3")
+                    // Match mixed numbers (e.g., "1 2/3")
                     let formattedText = text.replace(/(\d+)\s+(\d+)\/(\d+)/g, (match, whole, num, den) => {
                         return `<span class="inline-flex items-center align-middle mx-1">
                                     <span class="inline-mixed-whole">${whole}</span>
@@ -627,9 +618,9 @@
                                 </span>`;
                     });
 
-                    // Regex to match simple fractions (e.g., "1/2"), avoiding URLs if any exist
+                    // Match simple fractions (e.g., "1/2")
                     formattedText = formattedText.replace(/(?<!\d\s)(\b\d+)\/(\d+\b)/g, (match, num, den) => {
-                        return `<span class="inline-frac">
+                        return `<span class="inline-frac mx-0.5">
                                     <span class="inline-frac-num">${num}</span>
                                     <span class="inline-frac-den">${den}</span>
                                 </span>`;
@@ -638,16 +629,14 @@
                     return formattedText;
                 },
 
-                // Greatest Common Divisor
+                // Math Utility functions
                 gcd(a, b) {
                     return b === 0 ? Math.abs(a) : this.gcd(b, a % b);
                 },
-                // Least Common Multiple
                 lcm(a, b) {
                     if (a === 0 || b === 0) return 0;
                     return Math.abs((a * b) / this.gcd(a, b));
                 },
-                // Simplify fraction to { whole, num, den }
                 simplifyFraction(num, den) {
                     if (num === 0) return { whole: 0, num: 0, den: 1 };
                     const common = this.gcd(num, den);
@@ -661,25 +650,16 @@
 
                 generateOptions(correctVal) {
                     const options = [];
-                    options.push({
-                        ...correctVal,
-                        isCorrect: true
-                    });
+                    options.push({ ...correctVal, isCorrect: true });
 
-                    // Common mistakes distractors:
-                    let d1Num = correctVal.num + 1;
-                    let d1Den = correctVal.den;
-                    options.push({ whole: correctVal.whole, num: d1Num, den: d1Den, isCorrect: false });
-
+                    // Distractors
+                    options.push({ whole: correctVal.whole, num: correctVal.num + 1, den: correctVal.den, isCorrect: false });
                     let d2Num = Math.max(1, correctVal.num - 1);
                     let d2Whole = correctVal.num === 0 ? Math.max(0, correctVal.whole - 1) : correctVal.whole;
                     options.push({ whole: d2Whole, num: d2Num, den: correctVal.den, isCorrect: false });
+                    options.push({ whole: correctVal.whole + (Math.random() > 0.5 ? 1 : 0), num: Math.max(1, correctVal.num + 2), den: correctVal.den + 2, isCorrect: false });
 
-                    let d3Whole = correctVal.whole + (Math.random() > 0.5 ? 1 : 0);
-                    let d3Num = Math.max(1, correctVal.num + 2);
-                    options.push({ whole: d3Whole, num: d3Num, den: correctVal.den + 2, isCorrect: false });
-
-                    // Sanitize & Shuffle options
+                    // Sanitize
                     const cleanedOptions = options.map(opt => {
                         if (opt.num >= opt.den && opt.den > 1) {
                             const extra = Math.floor(opt.num / opt.den);
@@ -690,29 +670,25 @@
                         return opt;
                     });
 
+                    // Unique
                     const uniqueOptions = [];
                     const seen = new Set();
-
                     for (let opt of cleanedOptions) {
                         const key = `${opt.whole}-${opt.num}-${opt.den}`;
                         if (!seen.has(key)) {
                             seen.add(key);
                             uniqueOptions.push(opt);
                         } else {
-                            const altOpt = { ...opt, num: opt.num + 1, key: key + '-alt' };
-                            uniqueOptions.push(altOpt);
+                            uniqueOptions.push({ ...opt, num: opt.num + 1, key: key + '-alt' });
                         }
                     }
 
+                    // Fill up to 4
                     while (uniqueOptions.length < 4) {
-                        uniqueOptions.push({
-                            whole: correctVal.whole,
-                            num: uniqueOptions.length + 1,
-                            den: correctVal.den + 3,
-                            isCorrect: false
-                        });
+                        uniqueOptions.push({ whole: correctVal.whole, num: uniqueOptions.length + 1, den: correctVal.den + 3, isCorrect: false });
                     }
 
+                    // Shuffle
                     for (let i = uniqueOptions.length - 1; i > 0; i--) {
                         const j = Math.floor(Math.random() * (i + 1));
                         [uniqueOptions[i], uniqueOptions[j]] = [uniqueOptions[j], uniqueOptions[i]];
@@ -726,14 +702,11 @@
                     let whole1 = 0, whole2 = 0;
                     let op1 = '+';
                     let explanation = '';
-
                     const dens = [2, 3, 4, 5, 6, 8, 9, 10, 12];
 
                     if (level === 1) {
                         den1 = dens[Math.floor(Math.random() * dens.length)];
-                        do {
-                            den2 = dens[Math.floor(Math.random() * dens.length)];
-                        } while (den1 === den2);
+                        do { den2 = dens[Math.floor(Math.random() * dens.length)]; } while (den1 === den2);
 
                         num1 = Math.floor(Math.random() * (den1 - 1)) + 1;
                         num2 = Math.floor(Math.random() * (den2 - 1)) + 1;
@@ -748,12 +721,11 @@
                         const convertNum1 = num1 * (commonDen / den1);
                         const convertNum2 = num2 * (commonDen / den2);
                         const resultNum = op1 === '+' ? convertNum1 + convertNum2 : convertNum1 - convertNum2;
-                        
                         const ans = this.simplifyFraction(resultNum, commonDen);
                         
-                        explanation = `最小公倍數 LCM(${den1}, ${den2}) = ${commonDen}。` +
+                        explanation = `最小公倍數 LCM(${den1}、${den2}) = ${commonDen}。<br>` +
                             `通分後：${convertNum1}/${commonDen} ${op1} ${convertNum2}/${commonDen} = ${resultNum}/${commonDen}` +
-                            (ans.whole > 0 ? ` = ${ans.whole} 帶分數 ${ans.num}/${ans.den}` : `約簡後為 ${ans.num}/${ans.den}`);
+                            (ans.whole > 0 ? ` = ${ans.whole} 帶分數 ${ans.num}/${ans.den}` : ` 約簡後為 ${ans.num}/${ans.den}`);
 
                         return {
                             isWordProblem: false,
@@ -771,25 +743,19 @@
 
                     } else if (level === 2) {
                         den1 = [3, 4, 5, 6, 8, 10, 12][Math.floor(Math.random() * 7)];
-                        do {
-                            den2 = [2, 3, 4, 5, 6, 8, 10, 12][Math.floor(Math.random() * 8)];
-                        } while (den1 === den2);
+                        do { den2 = [2, 3, 4, 5, 6, 8, 10, 12][Math.floor(Math.random() * 8)]; } while (den1 === den2);
 
                         whole1 = Math.floor(Math.random() * 3) + 2; 
                         whole2 = Math.floor(Math.random() * (whole1 - 1)) + 1; 
-
                         num1 = 1; 
                         num2 = den2 - 1; 
-                        op1 = '-';
 
                         const commonDen = this.lcm(den1, den2);
                         const totalNum1 = (whole1 * den1 + num1) * (commonDen / den1);
                         const totalNum2 = (whole2 * den2 + num2) * (commonDen / den2);
-                        const resNum = totalNum1 - totalNum2;
+                        const ans = this.simplifyFraction(totalNum1 - totalNum2, commonDen);
 
-                        const ans = this.simplifyFraction(resNum, commonDen);
-
-                        explanation = `LCM(${den1}, ${den2}) = ${commonDen}。` +
+                        explanation = `LCM(${den1}、${den2}) = ${commonDen}。<br>` +
                             `通分並借位：${whole1} ${num1 * (commonDen / den1)}/${commonDen} - ${whole2} ${num2 * (commonDen / den2)}/${commonDen}` +
                             ` = 最簡結果 ${ans.whole ? ans.whole + ' 又 ' : ''}${ans.num}/${ans.den}`;
 
@@ -820,8 +786,7 @@
                         const t1 = (whole1 * commonDen) + (num1 * (commonDen / den1));
                         const t2 = num2 * (commonDen / den2);
                         const t3 = num3 * (commonDen / den3);
-                        const totalNum = t1 + t2 - t3;
-                        const ans = this.simplifyFraction(totalNum, commonDen);
+                        const ans = this.simplifyFraction(t1 + t2 - t3, commonDen);
 
                         explanation = `三個分數通分至分母 ${commonDen}，計算結果化簡後為 ${ans.whole ? ans.whole + ' 又 ' : ''}${ans.num}/${ans.den}。`;
 
@@ -907,12 +872,7 @@
                     this.maxCombo = 0;
                     this.correctCount = 0;
                     this.currentQuestionIndex = 0;
-                    
-                    // Reset Leaderboard inputs
-                    this.playerName = '';
-                    this.scoreSubmitted = false;
 
-                    // Generate questions list
                     this.questions = [];
                     for (let i = 0; i < this.totalQuestions; i++) {
                         this.questions.push(this.generateQuestion(level));
@@ -922,9 +882,7 @@
                     this.selectedChoice = null;
                     this.gameState = 'playing';
 
-                    if (this.timerEnabled) {
-                        this.startTimer();
-                    }
+                    if (this.timerEnabled) this.startTimer();
                 },
 
                 startTimer() {
@@ -944,7 +902,6 @@
                 selectAnswer(choice) {
                     if (this.selectedChoice !== null) return;
                     clearInterval(this.timerInterval);
-
                     this.selectedChoice = choice;
 
                     if (choice.isCorrect) {
@@ -966,17 +923,9 @@
                 },
 
                 getChoiceClass(choice) {
-                    if (this.selectedChoice === null) {
-                        return 'border-slate-200 bg-white hover:border-emerald-400 hover:bg-emerald-50/50 shadow-sm';
-                    }
-                    if (choice === this.selectedChoice) {
-                        return choice.isCorrect 
-                            ? 'border-emerald-500 bg-emerald-100 text-emerald-900 shadow-md'
-                            : 'border-rose-500 bg-rose-100 text-rose-900 shadow-md';
-                    }
-                    if (choice.isCorrect) {
-                        return 'border-emerald-400 bg-emerald-50 text-emerald-800 font-bold';
-                    }
+                    if (this.selectedChoice === null) return 'border-slate-200 bg-white hover:border-emerald-400 hover:bg-emerald-50/50 shadow-sm';
+                    if (choice === this.selectedChoice) return choice.isCorrect ? 'border-emerald-500 bg-emerald-100 text-emerald-900 shadow-md' : 'border-rose-500 bg-rose-100 text-rose-900 shadow-md';
+                    if (choice.isCorrect) return 'border-emerald-400 bg-emerald-50 text-emerald-800 font-bold';
                     return 'border-slate-100 bg-slate-50 opacity-40';
                 },
 
@@ -1004,69 +953,35 @@
                     return '💪 別灰心！建議點擊「解題提示」多觀察通分（LCM）步驟，再試一次吧！';
                 },
 
-                // --- Firebase & Leaderboard Functions ---
-
-                async initFirebase() {
-                    try {
-                        const config = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-                        if (!config) { console.warn("未檢測到雲端資料庫設定，龍虎榜功能將停用。"); return; }
-                        
-                        const app = initializeApp(config);
-                        this.auth = getAuth(app);
-                        this.db = getFirestore(app);
-
-                        const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                        if (token) {
-                            await signInWithCustomToken(this.auth, token);
-                        } else {
-                            await signInAnonymously(this.auth);
-                        }
-                        this.user = this.auth.currentUser;
-                    } catch (e) {
-                        console.error("資料庫連線錯誤:", e);
-                    }
-                },
-
+                // --- Leaderboard Integration (GAS) ---
                 async loadLeaderboard() {
                     this.isLoadingBoard = true;
                     try {
-                        if (this.gasUrl) {
-                            // 模式 A：從 Google Apps Script 獲取即時龍虎榜
-                            const response = await fetch(`${this.gasUrl}?level=${this.leaderboardTab}`);
-                            const data = await response.json();
-                            this.currentLeaderboard = data;
-                        } else if (this.db && this.user) {
-                            // 模式 B：從 Firebase 獲取 (預設線上預覽環境用)
-                            const appId = typeof __app_id !== 'undefined' ? __app_id : 'fraction-game-p5-hk';
-                            const colRef = collection(this.db, 'artifacts', appId, 'public', 'data', 'leaderboards');
-                            const snapshot = await getDocs(colRef);
-                            const records = [];
-                            snapshot.forEach(doc => records.push({ id: doc.id, ...doc.data() }));
-                            
-                            this.allLeaderboardRecords = records;
-                            this.updateLeaderboardDisplay();
-                        }
+                        const response = await fetch(`${this.gasUrl}?level=${this.leaderboardTab}`);
+                        const data = await response.json();
+                        this.currentLeaderboard = data;
                     } catch(e) {
                         console.error("載入龍虎榜失敗:", e);
                     }
                     this.isLoadingBoard = false;
                 },
 
-                updateLeaderboardDisplay() {
-                    // 此函數僅供 Firebase 模式使用，GAS 模式由後台直接返回排序好的 Top 10
-                    if (this.gasUrl) return; 
-
-                    const filtered = this.allLeaderboardRecords.filter(r => r.level === this.leaderboardTab);
-                    filtered.sort((a, b) => b.score - a.score || b.timestamp - a.timestamp);
-                    this.currentLeaderboard = filtered.slice(0, 10);
+                changeLeaderboardTab(lvl) {
+                    if(this.leaderboardTab !== lvl) {
+                        this.playSound('click');
+                        this.leaderboardTab = lvl;
+                        this.loadLeaderboard();
+                    }
                 },
 
                 async submitScore() {
-                    if (!this.playerName.trim() || this.scoreSubmitted) return;
+                    if (!this.playerName.trim() || !this.playerClass.trim() || this.isSubmitting) return;
                     this.playSound('click');
+                    this.isSubmitting = true;
                     
                     const record = {
                         level: this.currentLevel,
+                        playerClass: this.playerClass.trim().toUpperCase(),
                         playerName: this.playerName.trim().substring(0, 12),
                         score: this.score,
                         accuracy: Math.round((this.correctCount / this.totalQuestions) * 100),
@@ -1075,32 +990,21 @@
                     };
 
                     try {
-                        if (this.gasUrl) {
-                            // 模式 A：傳送至 Google Apps Script
-                            // 注意：使用預設 text/plain 可避免 GAS 的 CORS Preflight 阻擋問題
-                            await fetch(this.gasUrl, {
-                                method: 'POST',
-                                body: JSON.stringify(record)
-                            });
-                        } else if (this.db && this.user) {
-                            // 模式 B：傳送至 Firebase (預設線上預覽環境用)
-                            const appId = typeof __app_id !== 'undefined' ? __app_id : 'fraction-game-p5-hk';
-                            const colRef = collection(this.db, 'artifacts', appId, 'public', 'data', 'leaderboards');
-                            await addDoc(colRef, { ...record, userId: this.user.uid });
-                        }
+                        await fetch(this.gasUrl, {
+                            method: 'POST',
+                            body: JSON.stringify(record)
+                        });
                         
-                        this.scoreSubmitted = true;
-                        this.showLeaderboard(this.currentLevel);
+                        // Navigate back to menu and show the correct tab on success
+                        this.leaderboardTab = this.currentLevel;
+                        this.gameState = 'menu';
+                        this.loadLeaderboard();
                     } catch(e) {
                         console.error("上傳成績失敗:", e);
+                        alert("上傳成績時發生網路錯誤，請稍後再試。");
+                    } finally {
+                        this.isSubmitting = false;
                     }
-                },
-
-                showLeaderboard(level = 1) {
-                    this.playSound('click');
-                    this.leaderboardTab = level;
-                    this.gameState = 'leaderboard';
-                    this.loadLeaderboard();
                 }
             }
         }).mount('#app');
