@@ -910,8 +910,19 @@
                         this.combo++;
                         if (this.combo > this.maxCombo) this.maxCombo = this.combo;
                         
-                        const timeBonus = this.timerEnabled ? this.timeLeft * 2 : 0;
-                        this.score += 100 + (this.combo * 20) + timeBonus;
+                        // --- New Scoring Logic ---
+                        let baseScore = 100;
+                        if (this.timerEnabled) {
+                            const timeSpent = 45 - this.timeLeft; // Total time given is 45s
+                            if (timeSpent > 10) {
+                                // Deduct 1 point per second after 10 seconds. Minimum base score is 20.
+                                baseScore = Math.max(20, 100 - (timeSpent - 10));
+                            }
+                        }
+                        
+                        // Add base score + combo bonus
+                        this.score += baseScore + (this.combo * 20);
+                        // -------------------------
 
                         if (this.combo % 3 === 0 && typeof confetti === 'function') {
                             confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
