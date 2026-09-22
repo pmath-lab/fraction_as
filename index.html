@@ -89,7 +89,6 @@
       transition: all 0.3s ease;
     }
     
-    /* 單人模式佈局：隱藏其他玩家，放大 P1 */
     .players-grid.single-mode {
       grid-template-columns: 1fr;
       justify-items: center;
@@ -298,7 +297,6 @@
   </div>
 
   <div class="players-grid" id="players-container">
-    <!-- P1 Box (會作為單人模式的主視窗) -->
     <div class="p-box p0" id="box-p0">
       <div class="p-header">
         <span id="name-p0" style="color: #e84393;">🐰 兔兔</span>
@@ -325,7 +323,6 @@
       </div>
     </div>
 
-    <!-- P2 Box -->
     <div class="p-box p1" id="box-p1">
       <div class="p-header">
         <span style="color: #e67e22;">🐻 小熊</span>
@@ -341,7 +338,6 @@
       </div>
     </div>
 
-    <!-- P3 Box -->
     <div class="p-box p2" id="box-p2">
       <div class="p-header">
         <span style="color: #0984e3;">🐱 貓貓</span>
@@ -357,7 +353,6 @@
       </div>
     </div>
 
-    <!-- P4 Box -->
     <div class="p-box p3" id="box-p3">
       <div class="p-header">
         <span style="color: #00b894;">🐸 青蛙</span>
@@ -378,7 +373,7 @@
     <div class="modal-content">
       <h2>🏁 遊戲模式選擇</h2>
       <p style="color: #576574; font-weight: bold; margin-bottom: 10px;">請選擇您要進行的遊戲模式</p>
-      <button class="btn-large" onclick="openLoginModal()">👤 單人無盡模式 (自動存檔)</button>
+      <button class="btn-large" onclick="openLoginModal()">👤 單人模式</button>
       <button class="btn-large secondary" onclick="startMultiplayer()">👥 四人同機競賽</button>
       <div style="font-size: 0.8rem; color: #a4b0be; margin-top: 10px;">
         1. 點擊算式符號擴分<br>2. 借位處理<br>3. 輸入最簡分數或帶分數
@@ -527,15 +522,15 @@
 
   const finishDistMulti = 500;
   const GAS_URL = 'https://script.google.com/macros/s/AKfycbxJME-WT1T5WQH40Ox0KXGE9cguPKczMDxWN1N1siYJhAqQYL2fVFk0CvDgJ780241V7w/exec';
-  let gameMode = 'MENU'; // MENU, MULTI, SINGLE
+  let gameMode = 'MENU';
   let gameActive = false;
   let animationFrameId;
   let particles = [];
   let currentRank = 1;
-  let currentUser = null; // 存放當前單人模式的玩家資料
+  let currentUser = null;
 
   let players = [];
-  let singleTrackOpponents = []; // 單人模式顯示在賽道上的對手
+  let singleTrackOpponents = [];
 
   const trackCanvas = document.getElementById('trackCanvas');
   const tCtx = trackCanvas.getContext('2d');
@@ -552,12 +547,10 @@
       try {
           let res = await fetch(GAS_URL, {
               method: 'POST',
-              // 標頭設定 text/plain 避免觸發 CORS 預檢請求，GAS 伺服器端可以正常解析 JSON
               headers: { 'Content-Type': 'text/plain;charset=utf-8' },
               body: JSON.stringify(payload)
           });
           let result = await res.json();
-          // 若後端回傳正常或明確指出找不到玩家(準備註冊新資料)，則直接返回
           if (result && result.error === 'Not found') return result;
           if (result && result.error && result.error !== 'Not found') throw new Error(result.error);
           return result;
@@ -567,7 +560,6 @@
       }
   }
 
-  // 自動離線備援系統：如果網路或 Excel 卡住，遊戲不會壞掉，能繼續用本機空間建立新資料！
   function local_mock_db(payload) {
       let db = JSON.parse(localStorage.getItem('fraction_game_db') || '[]');
       if (payload.action === 'LOGIN') {
@@ -593,25 +585,19 @@
       return null;
   }
 
-  // 將全形字元轉為半形，並全部轉為大寫的輔助函數
   function toHalfWidthUpperCase(str) {
       if (!str) return '';
       let result = '';
       for (let i = 0; i < str.length; i++) {
           let charCode = str.charCodeAt(i);
-          // 處理全形空白
           if (charCode === 0x3000) {
               result += String.fromCharCode(0x0020);
-          } 
-          // 處理全形英文、數字及標點符號 (對應的 Unicode 範圍)
-          else if (charCode >= 0xFF01 && charCode <= 0xFF5E) {
+          } else if (charCode >= 0xFF01 && charCode <= 0xFF5E) {
               result += String.fromCharCode(charCode - 0xFEE0);
-          } 
-          else {
+          } else {
               result += str[i];
           }
       }
-      // 最後統一轉為大寫
       return result.toUpperCase();
   }
 
@@ -630,7 +616,6 @@
   let tempClass = "", tempName = "";
   
   async function handleLogin() {
-    // 在這裡套用全形轉半形及大寫轉換
     tempClass = toHalfWidthUpperCase(document.getElementById('input-class').value.trim());
     tempName = toHalfWidthUpperCase(document.getElementById('input-name').value.trim());
     const errDiv = document.getElementById('login-error');
@@ -664,7 +649,6 @@
 
   async function selectCar(idx) {
     document.getElementById('car-select-modal').style.display = 'none';
-    // 為了流暢度先暫時給予預設值並開始遊戲，背景同步寫入資料庫
     currentUser = { classStr: tempClass, nameStr: tempName, carIdx: idx, dist: 0, attempts: 0, correct: 0 };
     startSinglePlayer();
     
@@ -677,7 +661,6 @@
       currentUser.attempts += 1;
       if (isCorrect) currentUser.correct += 1;
       
-      // 非同步傳送進度，不阻礙遊戲體驗
       gas_fetch({
           action: 'UPDATE', 
           classStr: currentUser.classStr, 
@@ -696,7 +679,6 @@
       let myIdx = sorted.findIndex(u => u.classStr === currentUser.classStr && u.nameStr === currentUser.nameStr);
       
       let trackData = sorted;
-      // 如果伺服器上玩家很多，取出自己的前後幾名來顯示在畫面上
       if (sorted.length > 9 && myIdx !== -1) {
           let start = Math.max(0, myIdx - 4);
           let end = start + 9;
@@ -740,13 +722,11 @@
   function startSinglePlayer() {
     gameMode = 'SINGLE';
     document.getElementById('players-container').className = "players-grid single-mode";
-    // 隱藏其他玩家版面
     document.getElementById('box-p1').style.display = 'none';
     document.getElementById('box-p2').style.display = 'none';
     document.getElementById('box-p3').style.display = 'none';
-    document.getElementById('hud-txt').innerText = `🌍 無盡競速模式`;
+    document.getElementById('hud-txt').innerText = `🌍 單人模式`;
     
-    // 初始化主玩家 (固定在 p-box p0)
     let pImg = preloadedImgs[currentUser.carIdx];
     let pName = `${currentUser.classStr} ${currentUser.nameStr}`;
     players = [createPlayerObj(0, pName, carColors[currentUser.carIdx], pImg)];
@@ -1058,12 +1038,12 @@
                   setTimeout(() => { if(gameActive && !p.finished) loadPlayerQuestion(pId); }, 1500);
               }
           } else if (gameMode === 'SINGLE') {
-              p.dist += 2; // 單人模式每次前進 2m
+              p.dist += 2;
               updateProgressBackend(2, true);
               updateSinglePlayerStats();
               fb.className = "p-feedback correct"; fb.innerText = "🌟 完美解題！距離 +2m";
               setTimeout(() => {
-                  refreshTrackOpponents(); // 非同步刷新對手位置
+                  refreshTrackOpponents();
                   if(gameActive) loadPlayerQuestion(pId);
               }, 800);
           }
@@ -1100,18 +1080,15 @@
     const w = trackCanvas.width, h = trackCanvas.height;
     tCtx.clearRect(0, 0, w, h);
 
-    // 畫馬路
     tCtx.fillStyle = "#c8d6e5";
     tCtx.beginPath(); tCtx.moveTo(20, 30); tCtx.lineTo(w - 20, 30);
     tCtx.lineTo(w, h - 10); tCtx.lineTo(0, h - 10); tCtx.fill();
 
-    // 畫中線 (整體向下移，騰出上方天空給名字)
-    const baseCenterY = (gameMode === 'SINGLE') ? (h / 2) : (h / 2 - 10);
+    const baseCenterY = (gameMode === 'SINGLE') ? (h / 2 + 15) : (h / 2 + 10);
     
     tCtx.strokeStyle = "#fff"; tCtx.lineWidth = 4; tCtx.setLineDash([20, 15]);
-    tCtx.beginPath(); tCtx.moveTo(10, baseCenterY + 15); tCtx.lineTo(w-10, baseCenterY + 15); tCtx.stroke(); tCtx.setLineDash([]);
+    tCtx.beginPath(); tCtx.moveTo(10, baseCenterY); tCtx.lineTo(w-10, baseCenterY); tCtx.stroke(); tCtx.setLineDash([]);
 
-    // 處理終點線與動態鏡頭
     const finishX = w - 60;
     let startDist = 0;
     let trackMaxDist = finishDistMulti;
@@ -1123,21 +1100,17 @@
           tCtx.fillStyle = (r % 2 === 0) ? "#333" : "#fff"; tCtx.fillRect(finishX + 20, ySquare, 20, (h-40)/5);
         }
     } else {
-        // 單人模式：路程總顯示長度為 10M
         trackMaxDist = 10; 
-        // 鏡頭跟隨：當玩家前進超過 8m 時，畫面開始向右滾動 (讓玩家保持在畫面 80% 的位置)
         if (players[0] && players[0].visualDist > 8) {
             startDist = players[0].visualDist - 8;
         }
         
-        // 畫動態距離標尺
         tCtx.fillStyle = "rgba(0,0,0,0.5)";
         tCtx.font = "900 15px Nunito";
         tCtx.fillText(`◀ ${Math.floor(startDist)}m`, 20, 25);
         tCtx.fillText(`${Math.floor(startDist + trackMaxDist)}m ▶`, finishX - 10, 25);
     }
 
-    // 處理粒子
     for (let i = particles.length - 1; i >= 0; i--) {
       let pt = particles[i];
       pt.x += pt.vx; pt.y += pt.vy; pt.life -= 0.04; pt.size += 0.2;  
@@ -1149,8 +1122,6 @@
     }
 
     const carW = 75, carH = 55;
-    
-    // 決定要渲染的車輛陣列
     let renderList = [];
 
     if (gameMode === 'MULTI') {
@@ -1174,7 +1145,7 @@
                 players[0].yOffset = 0; 
                 return players[0];
             } else {
-                const newYOffset = (opponentCount % 2 === 0) ? -32 : 32;
+                const newYOffset = (opponentCount % 2 === 0) ? -28 : 28;
                 opponentCount++;
                 return {
                     isOpponent: true, name: c.name, dist: c.dist, visualDist: c.dist, 
@@ -1193,7 +1164,6 @@
           p.visualDist += speed;
       }
       
-      // 根據當前模式與鏡頭位置計算進度比例
       let progress = 0;
       if (gameMode === 'SINGLE') {
           progress = (p.visualDist - startDist) / trackMaxDist;
@@ -1202,7 +1172,6 @@
           if(progress > 1) progress = 1;
       }
       
-      // 效能與視覺優化：若車輛在畫面外太遠，則不繪製
       if (progress < -0.5 || progress > 1.5) return;
 
       const x = 20 + progress * (finishX - carW - 30);
@@ -1246,19 +1215,16 @@
         tCtx.scale(scaleX, scaleY);
         tCtx.drawImage(p.img, -carW/2, -(carH - 5), carW, carH);
         
-        // 畫名字或標籤 (單人模式的對手與自己)
         if (gameMode === 'SINGLE') {
-            tCtx.rotate(-tilt); // 轉回來畫字
-            tCtx.font = "900 13px Nunito"; // 稍微加粗一點
+            tCtx.rotate(-tilt);
+            tCtx.font = "900 13px Nunito";
             tCtx.textAlign = "center";
             let nameTxt = p.isOpponent ? p.name : "⭐ 我 ⭐";
             
-            // 加入白色粗描邊，確保黑色文字不被背景或車身吃掉
             tCtx.strokeStyle = "rgba(255, 255, 255, 0.9)";
             tCtx.lineWidth = 3;
             tCtx.strokeText(nameTxt, 0, -carH - 2);
             
-            // 寫上黑色字體
             tCtx.fillStyle = "#000000"; 
             tCtx.fillText(nameTxt, 0, -carH - 2);
         }
@@ -1268,7 +1234,6 @@
     });
   }
 
-  // 初次載入
   setTimeout(() => { resizeCanvas(); renderTrack(); }, 200);
 
 </script>
