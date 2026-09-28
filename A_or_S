@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+  <title>異分母分數加減競速賽 (包含單人模式)</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Nunito', 'Comic Sans MS', sans-serif;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    body {
+      background: repeating-linear-gradient( 45deg, #87CEEB, #87CEEB 20px, #9dd8f0 20px, #9dd8f0 40px );
+      color: #333;
+      overflow: hidden;
+      padding: 1vh 1vw;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      touch-action: none;
+    }
+
+    header {
+      background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+      padding: 1vh 2vw;
+      border-radius: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 4px solid #fff;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+      margin-bottom: 1vh;
+      flex: none;
+    }
+
+    h1 {
+      font-size: clamp(1.2rem, 2vw, 1.8rem);
+      color: #d81b60;
+      text-shadow: 2px 2px 0px #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hud {
+      font-size: clamp(0.9rem, 1.5vw, 1.2rem);
+      background: #fff;
+      padding: 4px 15px;
+      border-radius: 20px;
+      color: #ff9f43;
+      font-weight: 900;
+      border: 3px solid #ff9f43;
+      box-shadow: 0 4px 0 #ff9f43;
+    }
+
+    .track-section {
+      background: #fff;
+      border-radius: 20px;
+      padding: 6px;
+      border: 4px solid #fff;
+      box-shadow: 0 6px 0 rgba(0,0,0,0.15);
+      margin-bottom: 1vh;
+      position: relative;
+      flex: 0 0 25vh;
+      display: flex;
+    }
+
+    canvas#trackCanvas {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, #a4ebf3 0%, #7ed6df 100%);
+      border-radius: 12px;
+      display: block;
+    }
+
+    .players-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1vw;
+      flex: 1;
+      min-height: 0;
+      transition: all 0.3s ease;
+    }
+    
+    .players-grid.single-mode {
+      grid-template-columns: 1fr;
+      justify-items: center;
+    }
+    .players-grid.single-mode .p-box {
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .p-box {
+      background: #fff;
+      border-radius: 20px;
+      padding: 1vh 1vw;
+      border: 4px solid #ccc;
+      box-shadow: 0 6px 0 #ccc;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .p-box.p0 { border-color: #ff9ff3; box-shadow: 0 6px 0 #f368e0; background: #fff0f6; }
+    .p-box.p1 { border-color: #feca57; box-shadow: 0 6px 0 #ff9f43; background: #fff9e6; }
+    .p-box.p2 { border-color: #48dbfb; box-shadow: 0 6px 0 #0abde3; background: #e6fbff; }
+    .p-box.p3 { border-color: #1dd1a1; box-shadow: 0 6px 0 #10ac84; background: #e6fffa; }
+
+    .p-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 900;
+      font-size: clamp(0.8rem, 1vw, 1rem);
+      margin-bottom: 4px;
+      flex: none;
+    }
+
+    .p-badge {
+      padding: 2px 8px;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 0.8rem;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+    }
+    
+    .single-stats {
+      font-size: 0.85rem;
+      color: #576574;
+      background: rgba(255,255,255,0.8);
+      padding: 2px 10px;
+      border-radius: 10px;
+      display: none;
+    }
+    .players-grid.single-mode .single-stats {
+      display: block;
+    }
+
+    .math-board {
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      padding: 6px;
+      border-radius: 12px;
+      border: 3px dashed #c8d6e5;
+      margin-bottom: 4px;
+      gap: 6px;
+      overflow-y: auto;
+      flex: 1 1 0;
+      min-height: 0;
+      scroll-behavior: smooth;
+    }
+
+    .math-board::-webkit-scrollbar { width: 6px; }
+    .math-board::-webkit-scrollbar-track { background: #f1f2f6; border-radius: 10px; }
+    .math-board::-webkit-scrollbar-thumb { background: #c8d6e5; border-radius: 10px; }
+
+    .step-line {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      gap: 4px;
+      width: 100%;
+    }
+
+    .num-txt {
+      font-size: clamp(0.9rem, 1.2vw, 1.2rem);
+      font-weight: 900;
+      color: #5f27cd;
+      margin: 0 2px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .fraction {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      vertical-align: middle;
+      line-height: 1.1;
+      margin: 0 4px;
+    }
+
+    .fraction-num { border-bottom: 2px solid currentColor; padding: 0 4px; min-width: 1em; text-align: center; }
+    .fraction-den { padding: 0 4px; min-width: 1em; text-align: center; }
+
+    .op-btn {
+      font-size: clamp(0.9rem, 1.2vw, 1.2rem);
+      font-weight: 900;
+      color: #5f27cd;
+      background: #f1f2f6;
+      border: 2px dashed #a4b0be;
+      border-radius: 8px;
+      padding: 2px 6px;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #c8d6e5;
+      margin: 0 2px;
+      transition: 0.1s;
+    }
+    .op-btn:active { transform: translateY(3px); box-shadow: 0 0 0 #c8d6e5; }
+
+    .m-input-container { display: inline-flex; align-items: center; gap: 4px; margin: 0 4px; vertical-align: middle; flex-wrap: wrap; }
+    .m-frac-wrapper { display: inline-flex; align-items: center; gap: 4px; }
+    .m-box { display: flex; justify-content: center; align-items: center; border-radius: 6px; font-weight: 900; color: #2d3436; cursor: pointer; transition: all 0.1s; box-shadow: 0 2px 0 rgba(0,0,0,0.1); }
+    .m-box.active { box-shadow: 0 0 0 3px rgba(253, 203, 110, 0.8); transform: scale(1.05); animation: blinker 0.8s linear infinite; }
+    .m-box-w { width: 32px; height: 32px; border: 2px solid #ef4444; background: #fee2e2; font-size: 1rem; }
+    .m-box-w.active { border-color: #dc2626; }
+
+    .m-frac-col { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .m-box-part { width: 32px; height: 24px; border: 2px solid #3b82f6; background: #eff6ff; font-size: 0.9rem; }
+    .m-box-part.active { border-color: #2563eb; }
+
+    .m-frac-line { width: 100%; height: 2px; background: #2563eb; border-radius: 1px; }
+    .m-placeholder { color: #9ca3af; font-size: 0.7rem; }
+
+    .btn-next { background: #74b9ff; color: white; border-color: #0984e3; box-shadow: 0 3px 0 #0984e3; }
+    .btn-next:active { background: #0984e3; }
+
+    @keyframes blinker { 50% { border-color: transparent; } }
+
+    .p-feedback { min-height: 18px; text-align: center; font-size: 0.85rem; font-weight: 900; margin-bottom: 4px; transition: all 0.2s ease; line-height: 1.2; flex: none; }
+    .p-feedback.correct { color: #1dd1a1; animation: pop 0.3s ease-out; }
+    .p-feedback.wrong { color: #ff6b6b; animation: shake 0.3s ease-out; }
+
+    @keyframes pop { 0% { transform: scale(0.8); opacity: 0; } 50% { transform: scale(1.2); } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+
+    .mini-numpad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: auto; flex: none; }
+    .m-btn { background: #fff; color: #576574; border: 2px solid #c8d6e5; font-size: clamp(1rem, 1.5vw, 1.2rem); padding: 0.5vh 0; border-radius: 10px; cursor: pointer; font-weight: 900; box-shadow: 0 3px 0 #c8d6e5; transition: all 0.1s; display: flex; align-items: center; justify-content: center; }
+    .m-btn:active { transform: translateY(3px); box-shadow: 0 0px 0 #c8d6e5; background: #f1f2f6; }
+    .m-btn-del { background: #ff9f43; color: white; border-color: #f39c12; box-shadow: 0 3px 0 #f39c12; }
+    .m-btn-del:active { background: #f39c12; }
+    .m-btn-clr { background: #ff6b6b; color: white; border-color: #ee5253; box-shadow: 0 3px 0 #ee5253; }
+    .m-btn-clr:active { background: #ee5253; }
+    .m-btn-zero { grid-column: span 2; }
+    .m-btn-go { background: #1dd1a1; color: white; grid-column: span 2; border-color: #10ac84; box-shadow: 0 3px 0 #10ac84; }
+    .m-btn-go:active { background: #10ac84; }
+
+    .modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+      display: flex; justify-content: center; align-items: center; z-index: 99;
+    }
+    .modal-content {
+      background: #fff; padding: 30px; border-radius: 25px; text-align: center;
+      border: 6px solid #feca57; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      max-width: 480px; width: 90%; animation: pop 0.4s ease-out;
+      display: flex; flex-direction: column; gap: 15px;
+    }
+    .modal h2 { font-size: 1.8rem; color: #ff6b6b; margin-bottom: 5px; }
+    
+    .btn-large {
+      background: #1dd1a1; color: white; font-size: 1.2rem; border: none;
+      padding: 12px 25px; border-radius: 30px; cursor: pointer; font-weight: 900;
+      box-shadow: 0 5px 0 #10ac84; transition: all 0.1s;
+    }
+    .btn-large:active { transform: translateY(5px); box-shadow: 0 0px 0 #10ac84; }
+    .btn-large.secondary { background: #74b9ff; box-shadow: 0 5px 0 #0984e3; }
+    .btn-large.secondary:active { box-shadow: 0 0px 0 #0984e3; }
+
+    .input-group { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+    .input-group label { font-weight: 900; color: #5f27cd; font-size: 1.1rem; }
+    .input-group input { padding: 10px; font-size: 1.1rem; border: 3px solid #c8d6e5; border-radius: 12px; outline: none; }
+    .input-group input:focus { border-color: #ff9ff3; }
+
+    .car-select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+    .car-btn {
+      background: #f1f2f6; border: 3px solid #c8d6e5; border-radius: 15px; padding: 10px;
+      cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; transition: 0.2s;
+    }
+    .car-btn img { width: 80%; object-fit: contain; }
+    .car-btn:hover { border-color: #ff9f43; background: #fff9e6; transform: scale(1.05); }
+    .car-btn.selected { border-color: #ff9f43; background: #fff9e6; box-shadow: 0 0 0 4px rgba(255,159,67,0.3); }
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🏁 異分母分數加減競速賽</h1>
+    <div class="hud" id="hud-txt">請選擇遊戲模式</div>
+  </header>
+
+  <div class="track-section">
+    <canvas id="trackCanvas"></canvas>
+  </div>
+
+  <div class="players-grid" id="players-container">
+    <div class="p-box p0" id="box-p0">
+      <div class="p-header">
+        <span id="name-p0" style="color: #e84393;">🐰 兔兔</span>
+        <span class="single-stats" id="stats-p0">距離: 0m | 準確率: 0%</span>
+        <span class="p-badge" style="background:#ff789e;">P1</span>
+      </div>
+      <div class="math-board" id="q-0"></div>
+      <div class="p-feedback" id="fb-0"></div>
+      <div class="mini-numpad">
+        <button class="m-btn" onclick="press(0,'7')">7</button>
+        <button class="m-btn" onclick="press(0,'8')">8</button>
+        <button class="m-btn" onclick="press(0,'9')">9</button>
+        <button class="m-btn m-btn-del" onclick="press(0,'DEL')">⌫</button>
+        <button class="m-btn" onclick="press(0,'4')">4</button>
+        <button class="m-btn" onclick="press(0,'5')">5</button>
+        <button class="m-btn" onclick="press(0,'6')">6</button>
+        <button class="m-btn m-btn-clr" onclick="press(0,'CLR')">C</button>
+        <button class="m-btn" onclick="press(0,'1')">1</button>
+        <button class="m-btn" onclick="press(0,'2')">2</button>
+        <button class="m-btn" onclick="press(0,'3')">3</button>
+        <button class="m-btn btn-next" onclick="nextField(0)">▶</button>
+        <button class="m-btn m-btn-zero" onclick="press(0,'0')">0</button>
+        <button class="m-btn m-btn-go" onclick="submitAns(0)">🚀</button>
+      </div>
+    </div>
+
+    <div class="p-box p1" id="box-p1">
+      <div class="p-header">
+        <span style="color: #e67e22;">🐻 小熊</span>
+        <span class="p-badge" style="background:#fbc531;">P2</span>
+      </div>
+      <div class="math-board" id="q-1"></div>
+      <div class="p-feedback" id="fb-1"></div>
+      <div class="mini-numpad">
+        <button class="m-btn" onclick="press(1,'7')">7</button><button class="m-btn" onclick="press(1,'8')">8</button><button class="m-btn" onclick="press(1,'9')">9</button><button class="m-btn m-btn-del" onclick="press(1,'DEL')">⌫</button>
+        <button class="m-btn" onclick="press(1,'4')">4</button><button class="m-btn" onclick="press(1,'5')">5</button><button class="m-btn" onclick="press(1,'6')">6</button><button class="m-btn m-btn-clr" onclick="press(1,'CLR')">C</button>
+        <button class="m-btn" onclick="press(1,'1')">1</button><button class="m-btn" onclick="press(1,'2')">2</button><button class="m-btn" onclick="press(1,'3')">3</button><button class="m-btn btn-next" onclick="nextField(1)">▶</button>
+        <button class="m-btn m-btn-zero" onclick="press(1,'0')">0</button><button class="m-btn m-btn-go" onclick="submitAns(1)">🚀</button>
+      </div>
+    </div>
+
+    <div class="p-box p2" id="box-p2">
+      <div class="p-header">
+        <span style="color: #0984e3;">🐱 貓貓</span>
+        <span class="p-badge" style="background:#00d2d3;">P3</span>
+      </div>
+      <div class="math-board" id="q-2"></div>
+      <div class="p-feedback" id="fb-2"></div>
+      <div class="mini-numpad">
+        <button class="m-btn" onclick="press(2,'7')">7</button><button class="m-btn" onclick="press(2,'8')">8</button><button class="m-btn" onclick="press(2,'9')">9</button><button class="m-btn m-btn-del" onclick="press(2,'DEL')">⌫</button>
+        <button class="m-btn" onclick="press(2,'4')">4</button><button class="m-btn" onclick="press(2,'5')">5</button><button class="m-btn" onclick="press(2,'6')">6</button><button class="m-btn m-btn-clr" onclick="press(2,'CLR')">C</button>
+        <button class="m-btn" onclick="press(2,'1')">1</button><button class="m-btn" onclick="press(2,'2')">2</button><button class="m-btn" onclick="press(2,'3')">3</button><button class="m-btn btn-next" onclick="nextField(2)">▶</button>
+        <button class="m-btn m-btn-zero" onclick="press(2,'0')">0</button><button class="m-btn m-btn-go" onclick="submitAns(2)">🚀</button>
+      </div>
+    </div>
+
+    <div class="p-box p3" id="box-p3">
+      <div class="p-header">
+        <span style="color: #00b894;">🐸 青蛙</span>
+        <span class="p-badge" style="background:#1dd1a1;">P4</span>
+      </div>
+      <div class="math-board" id="q-3"></div>
+      <div class="p-feedback" id="fb-3"></div>
+      <div class="mini-numpad">
+        <button class="m-btn" onclick="press(3,'7')">7</button><button class="m-btn" onclick="press(3,'8')">8</button><button class="m-btn" onclick="press(3,'9')">9</button><button class="m-btn m-btn-del" onclick="press(3,'DEL')">⌫</button>
+        <button class="m-btn" onclick="press(3,'4')">4</button><button class="m-btn" onclick="press(3,'5')">5</button><button class="m-btn" onclick="press(3,'6')">6</button><button class="m-btn m-btn-clr" onclick="press(3,'CLR')">C</button>
+        <button class="m-btn" onclick="press(3,'1')">1</button><button class="m-btn" onclick="press(3,'2')">2</button><button class="m-btn" onclick="press(3,'3')">3</button><button class="m-btn btn-next" onclick="nextField(3)">▶</button>
+        <button class="m-btn m-btn-zero" onclick="press(3,'0')">0</button><button class="m-btn m-btn-go" onclick="submitAns(3)">🚀</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="menu-modal">
+    <div class="modal-content">
+      <h2>🏁 遊戲模式選擇</h2>
+      <p style="color: #576574; font-weight: bold; margin-bottom: 10px;">請選擇您要進行的遊戲模式</p>
+      <button class="btn-large" onclick="openLoginModal()">👤 單人模式</button>
+      <button class="btn-large secondary" onclick="startMultiplayer()">👥 四人同機競賽</button>
+      <div style="font-size: 0.8rem; color: #a4b0be; margin-top: 10px;">
+        1. 點擊算式符號擴分<br>2. 借位處理<br>3. 輸入最簡分數或帶分數
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="login-modal" style="display:none;">
+    <div class="modal-content">
+      <h2>👤 學生登入</h2>
+      <div class="input-group">
+        <label>班別 (如: 4A)</label>
+        <input type="text" id="input-class" placeholder="請輸入班別" autocomplete="off">
+      </div>
+      <div class="input-group">
+        <label>姓名</label>
+        <input type="text" id="input-name" placeholder="請輸入姓名" autocomplete="off">
+      </div>
+      <div id="login-error" style="color:#ff6b6b; font-size: 0.95rem; font-weight: bold; margin-top: 5px; min-height: 1.2em;"></div>
+      <div style="display: flex; gap: 10px; margin-top: 5px;">
+        <button class="btn-large secondary" style="flex:1;" onclick="backToMenu()">返回</button>
+        <button class="btn-large" id="btn-login" style="flex:2;" onclick="handleLogin()">確認登入 🚀</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="car-select-modal" style="display:none;">
+    <div class="modal-content" style="max-width: 500px;">
+      <h2>🚗 選擇你的賽車</h2>
+      <p style="color: #576574; font-weight: bold;">歡迎新玩家！請選擇一輛喜歡的車：</p>
+      <div class="car-select-grid">
+        <div class="car-btn" onclick="selectCar(0)"><img src="https://pmath-lab.github.io/decimals4/car1.png" alt="Car 1">🐰 兔兔車</div>
+        <div class="car-btn" onclick="selectCar(1)"><img src="https://pmath-lab.github.io/decimals4/car2.png" alt="Car 2">🐻 小熊車</div>
+        <div class="car-btn" onclick="selectCar(2)"><img src="https://pmath-lab.github.io/decimals4/car3.png" alt="Car 3">🐱 貓貓車</div>
+        <div class="car-btn" onclick="selectCar(3)"><img src="https://pmath-lab.github.io/decimals4/car4.png" alt="Car 4">🐸 青蛙車</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="end-modal" style="display:none;">
+    <div class="modal-content">
+      <h2 id="modal-title">🏁 比賽結束！</h2>
+      <p id="modal-msg" style="margin: 15px 0; color: #576574; font-size: 1.2rem; font-weight: bold;"></p>
+      <button class="btn-large" onclick="location.reload()">再玩一次 🚀</button>
+    </div>
+  </div>
+
+<script>
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playSound(type) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    if (type === 'correct') {
+      osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
+      osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+    } else if (type === 'click') {
+      osc.type = 'triangle'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+    } else if (type === 'wrong') {
+      osc.type = 'sawtooth'; osc.frequency.setValueAtTime(250, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(150, audioCtx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+    }
+  }
+
+  function gcd(a, b) { return b === 0 ? Math.abs(a) : gcd(b, a % b); }
+
+  function parseFraction(str) {
+    if (!str) return { n: 0, d: 1 };
+    let strVal = str.toString();
+    let w = 0, n = 0, d = 1;
+    if (strVal.includes('_')) {
+      let parts = strVal.split('_'); w = parseInt(parts[0]) || 0;
+      let fracParts = parts[1].split('/'); n = parseInt(fracParts[0]) || 0; d = parseInt(fracParts[1]) || 1;
+    } else if (strVal.includes('/')) {
+      let parts = strVal.split('/'); n = parseInt(parts[0]) || 0; d = parseInt(parts[1]) || 1;
+    } else { w = parseInt(strVal) || 0; }
+    if (d === 0) d = 1;
+    let sign = (w < 0 || strVal.trim().startsWith('-')) ? -1 : 1;
+    w = Math.abs(w);
+    return { n: sign * (w * d + n), d: d };
+  }
+
+  function parseMixed(str) {
+    let strVal = str.toString(); let w = 0, n = 0, d = 1;
+    if (strVal.includes('_')) {
+        let parts = strVal.split('_'); w = parseInt(parts[0]) || 0;
+        let fracParts = parts[1].split('/'); n = parseInt(fracParts[0]) || 0; d = parseInt(fracParts[1]) || 1;
+    } else if (strVal.includes('/')) {
+        let parts = strVal.split('/'); n = parseInt(parts[0]) || 0; d = parseInt(parts[1]) || 1;
+    } else { w = parseInt(strVal) || 0; }
+    return {w, n, d};
+  }
+
+  function needsBorrow(str1, str2, op) {
+      if (op !== '-') return false;
+      let p1 = parseMixed(str1), p2 = parseMixed(str2);
+      if (p1.d === p2.d && p1.w > 0) {
+          if (p1.n < p2.n || (p1.n === 0 && p2.n > 0)) return true;
+      }
+      return false;
+  }
+
+  function buildStr(w, n, d) {
+    if (w !== 0 && n !== 0) return `${w}_${n}/${d}`;
+    if (w !== 0) return `${w}`;
+    if (n !== 0) return `${n}/${d}`;
+    return "0";
+  }
+
+  function simplify(f) {
+    if (f.n === 0) return { n: 0, d: 1 };
+    let g = gcd(Math.abs(f.n), Math.abs(f.d));
+    let sign = (f.n * f.d < 0) ? -1 : 1;
+    return { n: sign * (Math.abs(f.n) / g), d: Math.abs(f.d) / g };
+  }
+
+  function addFrac(f1, f2) { return simplify({ n: f1.n * f2.d + f2.n * f1.d, d: f1.d * f2.d }); }
+  function subFrac(f1, f2) { return simplify({ n: f1.n * f2.d - f2.n * f1.d, d: f1.d * f2.d }); }
+
+  const rawQuestions = [
+    "1/2 + 1/3", "3/4 - 1/6", "2/5 + 1/4", "5/8 - 1/2", "5/6 + 1/4", "7/8 - 1/4", "3/5 + 2/3", "9/10 - 1/4",
+    "1_1/2 + 1/3", "2_1/4 + 1_1/3", "3_1/2 - 1_1/4", "2_1/5 - 1/2", "1_3/4 - 5/6", "3_1/3 - 1_1/2", "1/6 + 3/8", "3/4 + 5/6"
+  ];
+
+  const carImages = [
+    "https://pmath-lab.github.io/decimals4/car1.png",
+    "https://pmath-lab.github.io/decimals4/car2.png",
+    "https://pmath-lab.github.io/decimals4/car3.png",
+    "https://pmath-lab.github.io/decimals4/car4.png"
+  ];
+  const carNames = ["🐰 兔兔", "🐻 小熊", "🐱 貓貓", "🐸 青蛙"];
+  const carColors = ["#ff9ff3", "#feca57", "#48dbfb", "#1dd1a1"];
+  
+  let preloadedImgs = carImages.map(src => { let img = new Image(); img.src = src; return img; });
+
+  const finishDistMulti = 500;
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbxJME-WT1T5WQH40Ox0KXGE9cguPKczMDxWN1N1siYJhAqQYL2fVFk0CvDgJ780241V7w/exec';
+  let gameMode = 'MENU';
+  let gameActive = false;
+  let animationFrameId;
+  let particles = [];
+  let currentRank = 1;
+  let currentUser = null;
+
+  let players = [];
+  let singleTrackOpponents = [];
+
+  const trackCanvas = document.getElementById('trackCanvas');
+  const tCtx = trackCanvas.getContext('2d');
+  document.addEventListener('contextmenu', event => event.preventDefault());
+
+  function resizeCanvas() {
+    if(!trackCanvas.parentElement) return;
+    trackCanvas.width = trackCanvas.parentElement.clientWidth - 12;
+    trackCanvas.height = trackCanvas.parentElement.clientHeight - 12;
+  }
+  window.addEventListener('resize', resizeCanvas);
+
+  async function gas_fetch(payload) {
+      try {
+          let res = await fetch(GAS_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify(payload)
+          });
+          let result = await res.json();
+          if (result && result.error === 'Not found') return result;
+          if (result && result.error && result.error !== 'Not found') throw new Error(result.error);
+          return result;
+      } catch(e) {
+          console.warn("⚠️ GAS 伺服器連線異常，已自動切換至本機備用資料庫 (LocalStorage)", e);
+          return local_mock_db(payload);
+      }
+  }
+
+  function local_mock_db(payload) {
+      let db = JSON.parse(localStorage.getItem('fraction_game_db') || '[]');
+      if (payload.action === 'LOGIN') {
+          let user = db.find(u => u.classStr === payload.classStr && u.nameStr === payload.nameStr);
+          return user ? user : {error: 'Not found'};
+      }
+      if (payload.action === 'REGISTER') {
+          db.push({ classStr: payload.classStr, nameStr: payload.nameStr, carIdx: payload.carIdx, dist: 0, attempts: 0, correct: 0 });
+          localStorage.setItem('fraction_game_db', JSON.stringify(db));
+          return {success: true};
+      }
+      if (payload.action === 'UPDATE') {
+          let user = db.find(u => u.classStr === payload.classStr && u.nameStr === payload.nameStr);
+          if (user) {
+              user.dist += (payload.distAdded || 0);
+              user.attempts += 1;
+              if (payload.isCorrect) user.correct += 1;
+              localStorage.setItem('fraction_game_db', JSON.stringify(db));
+              return {success: true};
+          }
+      }
+      if (payload.action === 'GET_TRACK') return db;
+      return null;
+  }
+
+  function toHalfWidthUpperCase(str) {
+      if (!str) return '';
+      let result = '';
+      for (let i = 0; i < str.length; i++) {
+          let charCode = str.charCodeAt(i);
+          if (charCode === 0x3000) {
+              result += String.fromCharCode(0x0020);
+          } else if (charCode >= 0xFF01 && charCode <= 0xFF5E) {
+              result += String.fromCharCode(charCode - 0xFEE0);
+          } else {
+              result += str[i];
+          }
+      }
+      return result.toUpperCase();
+  }
+
+  function openLoginModal() {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    document.getElementById('menu-modal').style.display = 'none';
+    document.getElementById('login-modal').style.display = 'flex';
+    document.getElementById('login-error').innerText = "";
+  }
+
+  function backToMenu() {
+    document.getElementById('login-modal').style.display = 'none';
+    document.getElementById('menu-modal').style.display = 'flex';
+  }
+
+  let tempClass = "", tempName = "";
+  
+  async function handleLogin() {
+    tempClass = toHalfWidthUpperCase(document.getElementById('input-class').value.trim());
+    tempName = toHalfWidthUpperCase(document.getElementById('input-name').value.trim());
+    const errDiv = document.getElementById('login-error');
+    const btn = document.getElementById('btn-login');
+    
+    if (!tempClass || !tempName) { 
+        errDiv.innerText = "❌ 請輸入班別與姓名！"; 
+        return; 
+    }
+    
+    errDiv.innerText = "";
+    btn.disabled = true;
+    btn.innerText = "連線中 ⏳...";
+    
+    let data = await gas_fetch({action: 'LOGIN', classStr: tempClass, nameStr: tempName});
+    
+    btn.disabled = false;
+    btn.innerText = "確認登入 🚀";
+    
+    if (data && !data.error) {
+        document.getElementById('login-modal').style.display = 'none';
+        currentUser = data;
+        startSinglePlayer();
+    } else if (data && data.error === 'Not found') {
+        document.getElementById('login-modal').style.display = 'none';
+        document.getElementById('car-select-modal').style.display = 'flex';
+    } else {
+        errDiv.innerText = "❌ 連線失敗，請檢查網路連線或稍後再試！";
+    }
+  }
+
+  async function selectCar(idx) {
+    document.getElementById('car-select-modal').style.display = 'none';
+    currentUser = { classStr: tempClass, nameStr: tempName, carIdx: idx, dist: 0, attempts: 0, correct: 0 };
+    startSinglePlayer();
+    
+    await gas_fetch({action: 'REGISTER', classStr: tempClass, nameStr: tempName, carIdx: idx});
+  }
+
+  function updateProgressBackend(distAdded, isCorrect) {
+      if (!currentUser) return;
+      currentUser.dist += distAdded;
+      currentUser.attempts += 1;
+      if (isCorrect) currentUser.correct += 1;
+      
+      gas_fetch({
+          action: 'UPDATE', 
+          classStr: currentUser.classStr, 
+          nameStr: currentUser.nameStr, 
+          distAdded: distAdded, 
+          isCorrect: isCorrect
+      });
+  }
+
+  async function refreshTrackOpponents() {
+      if(gameMode !== 'SINGLE') return;
+      let db = await gas_fetch({action: 'GET_TRACK'});
+      if (!db) return;
+      
+      let sorted = [...db].sort((a, b) => b.dist - a.dist);
+      let myIdx = sorted.findIndex(u => u.classStr === currentUser.classStr && u.nameStr === currentUser.nameStr);
+      
+      let trackData = sorted;
+      if (sorted.length > 9 && myIdx !== -1) {
+          let start = Math.max(0, myIdx - 4);
+          let end = start + 9;
+          if (end > sorted.length) {
+              end = sorted.length;
+              start = Math.max(0, end - 9);
+          }
+          trackData = sorted.slice(start, end);
+      } else if (sorted.length > 9) {
+          trackData = sorted.slice(0, 9);
+      }
+      
+      singleTrackOpponents = trackData.map((u, i) => {
+          return {
+              name: `${u.classStr} ${u.nameStr}`,
+              dist: u.dist,
+              img: preloadedImgs[u.carIdx],
+              yOffset: (i * ((trackCanvas.height - 40) / Math.max(1, trackData.length-1 || 1))) - (trackCanvas.height/2 - 20),
+              isMe: (u.classStr === currentUser.classStr && u.nameStr === currentUser.nameStr)
+          };
+      });
+  }
+
+  function startMultiplayer() {
+    gameMode = 'MULTI';
+    document.getElementById('menu-modal').style.display = 'none';
+    document.getElementById('players-container').className = "players-grid";
+    document.getElementById('box-p1').style.display = 'flex';
+    document.getElementById('box-p2').style.display = 'flex';
+    document.getElementById('box-p3').style.display = 'flex';
+    document.getElementById('hud-txt').innerText = `終點線：${finishDistMulti}m`;
+
+    players = [];
+    for(let i=0; i<4; i++){
+        players.push(createPlayerObj(i, carNames[i], carColors[i], preloadedImgs[i]));
+    }
+    
+    startGameEngine();
+  }
+
+  function startSinglePlayer() {
+    gameMode = 'SINGLE';
+    document.getElementById('players-container').className = "players-grid single-mode";
+    document.getElementById('box-p1').style.display = 'none';
+    document.getElementById('box-p2').style.display = 'none';
+    document.getElementById('box-p3').style.display = 'none';
+    document.getElementById('hud-txt').innerText = `🌍 單人模式`;
+    
+    let pImg = preloadedImgs[currentUser.carIdx];
+    let pName = `${currentUser.classStr} ${currentUser.nameStr}`;
+    players = [createPlayerObj(0, pName, carColors[currentUser.carIdx], pImg)];
+    players[0].dist = currentUser.dist; 
+    players[0].visualDist = currentUser.dist;
+    
+    document.getElementById('name-p0').innerText = pName;
+    document.getElementById('name-p0').style.color = carColors[currentUser.carIdx];
+    
+    updateSinglePlayerStats();
+    refreshTrackOpponents();
+    startGameEngine();
+  }
+
+  function createPlayerObj(id, name, color, img) {
+      return { 
+        id: id, name: name, color: color, img: img, 
+        dist: 0, visualDist: 0, qIdx: Math.floor(Math.random() * rawQuestions.length), 
+        yOffset: (id * 18) - 25, finished: false, rank: 0, 
+        tokens: [], pastLines: [], stepState: 'SELECT', expectedAns: {n:0,d:1}, 
+        leftBound: -1, rightBound: -1, inputData: {}, activeField: 'w', currentOp: '', origA: null, origB: null 
+      };
+  }
+
+  function startGameEngine() {
+    particles = [];
+    currentRank = 1;
+    players.forEach(p => loadPlayerQuestion(p.id));
+    gameActive = true;
+    resizeCanvas();
+    if(animationFrameId) cancelAnimationFrame(animationFrameId);
+    gameLoop();
+  }
+
+  function updateSinglePlayerStats() {
+      if(gameMode !== 'SINGLE') return;
+      let acc = currentUser.attempts === 0 ? 0 : Math.round((currentUser.correct / currentUser.attempts) * 100);
+      document.getElementById('stats-p0').innerText = `距離: ${currentUser.dist}m | 準確率: ${acc}%`;
+  }
+
+  function getPriorityOpIndex(tokens) {
+    let start = 0; let end = tokens.length - 1;
+    for(let i = start; i <= end; i++) { if(tokens[i] === '+' || tokens[i] === '-') return i; }
+    return -1;
+  }
+
+  function loadPlayerQuestion(pId) {
+    const p = players.find(x => x.id === pId);
+    if (!p || p.finished) return;
+    p.tokens = rawQuestions[p.qIdx % rawQuestions.length].split(" ");
+    p.pastLines = []; p.stepState = 'SELECT';
+    p.inputData = { w: '', n: '', d: '' }; p.activeField = 'w';
+    document.getElementById(`fb-${pId}`).innerText = "請點選算式中的加減符號👆";
+    document.getElementById(`fb-${pId}`).className = "p-feedback";
+    renderEquation(pId);
+  }
+
+  function createCommonDenomInput(pId, op) {
+    const p = players.find(x=>x.id===pId);
+    const container = document.createElement('div'); container.className = 'm-input-container';
+    function makeFrac(prefix) {
+      const wrapper = document.createElement('div'); wrapper.className = 'm-frac-wrapper';
+      const wBox = document.createElement('div'); wBox.className = `m-box m-box-w ${p.activeField === prefix+'w' ? 'active' : ''}`;
+      wBox.innerHTML = p.inputData[prefix+'w'] || '<span class="m-placeholder">整</span>';
+      wBox.onclick = () => { p.activeField = prefix+'w'; renderEquation(pId); };
+      const fracCol = document.createElement('div'); fracCol.className = 'm-frac-col';
+      const nBox = document.createElement('div'); nBox.className = `m-box m-box-part ${p.activeField === prefix+'n' ? 'active' : ''}`;
+      nBox.innerHTML = p.inputData[prefix+'n'] || '<span class="m-placeholder">分子</span>';
+      nBox.onclick = () => { p.activeField = prefix+'n'; renderEquation(pId); };
+      const line = document.createElement('div'); line.className = 'm-frac-line';
+      const dBox = document.createElement('div'); dBox.className = `m-box m-box-part ${p.activeField === prefix+'d' ? 'active' : ''}`;
+      dBox.innerHTML = p.inputData[prefix+'d'] || '<span class="m-placeholder">分母</span>';
+      dBox.onclick = () => { p.activeField = prefix+'d'; renderEquation(pId); };
+      fracCol.appendChild(nBox); fracCol.appendChild(line); fracCol.appendChild(dBox);
+      wrapper.appendChild(wBox); wrapper.appendChild(fracCol); return wrapper;
+    }
+    container.appendChild(makeFrac('1_'));
+    let opSpan = document.createElement('span'); opSpan.className = 'num-txt'; opSpan.style.margin = '0 8px'; opSpan.innerText = op;
+    container.appendChild(opSpan); container.appendChild(makeFrac('2_'));
+    return container;
+  }
+
+  function createMixedInput(pId) {
+    const p = players.find(x=>x.id===pId);
+    const container = document.createElement('div'); container.className = 'm-input-container';
+    const wBox = document.createElement('div'); wBox.className = `m-box m-box-w ${p.activeField === 'w' ? 'active' : ''}`;
+    wBox.innerHTML = p.inputData.w || '<span class="m-placeholder">整</span>'; wBox.onclick = () => { p.activeField = 'w'; renderEquation(pId); };
+    const fracCol = document.createElement('div'); fracCol.className = 'm-frac-col';
+    const nBox = document.createElement('div'); nBox.className = `m-box m-box-part ${p.activeField === 'n' ? 'active' : ''}`;
+    nBox.innerHTML = p.inputData.n || '<span class="m-placeholder">分子</span>'; nBox.onclick = () => { p.activeField = 'n'; renderEquation(pId); };
+    const line = document.createElement('div'); line.className = 'm-frac-line';
+    const dBox = document.createElement('div'); dBox.className = `m-box m-box-part ${p.activeField === 'd' ? 'active' : ''}`;
+    dBox.innerHTML = p.inputData.d || '<span class="m-placeholder">分母</span>'; dBox.onclick = () => { p.activeField = 'd'; renderEquation(pId); };
+    fracCol.appendChild(nBox); fracCol.appendChild(line); fracCol.appendChild(dBox);
+    container.appendChild(wBox); container.appendChild(fracCol);
+    return container;
+  }
+
+  function createFractionElement(str) {
+    let strVal = str.toString(); let span = document.createElement('span'); span.className = 'num-txt'; span.style.display = 'inline-flex'; span.style.alignItems = 'center';
+    let w = "", n = "", d = "";
+    if (strVal.includes('_')) { let parts = strVal.split('_'); w = parts[0]; let fracParts = parts[1].split('/'); n = fracParts[0]; d = fracParts[1];
+    } else if (strVal.includes('/')) { let parts = strVal.split('/'); n = parts[0]; d = parts[1];
+    } else { w = strVal; }
+    if (w) { let wSpan = document.createElement('span'); wSpan.innerText = w; if (n) wSpan.style.marginRight = '4px'; span.appendChild(wSpan); }
+    if (n && d) {
+      let fracDiv = document.createElement('div'); fracDiv.className = 'fraction';
+      let numSpan = document.createElement('span'); numSpan.className = 'fraction-num'; numSpan.innerText = n;
+      let denSpan = document.createElement('span'); denSpan.className = 'fraction-den'; denSpan.innerText = d;
+      fracDiv.appendChild(numSpan); fracDiv.appendChild(denSpan); span.appendChild(fracDiv);
+    }
+    if (!w && !n) span.innerText = "0";
+    return span;
+  }
+
+  function renderToken(token) {
+    const ops = ['+', '-', '×', '÷', '(', ')', '='];
+    if (ops.includes(token)) { let span = document.createElement('span'); span.className = 'num-txt'; span.innerText = token; return span; }
+    return createFractionElement(token);
+  }
+
+  function renderEquation(pId) {
+    const p = players.find(x=>x.id===pId);
+    const container = document.getElementById(`q-${pId}`);
+    if (!p) return;
+    if (p.finished) {
+      const medals = ['🥇', '🥈', '🥉', '🏅'];
+      container.innerHTML = `<div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; width:100%;">
+          <div style="font-size: clamp(2.5rem, 4vw, 4rem);">${medals[p.rank - 1] || '🏅'}</div>
+          <div style="font-size: clamp(1.2rem, 2vw, 1.8rem); font-weight: 900; color: ${p.color}; margin-top: 10px;">第 ${p.rank} 名</div></div>`;
+      return; 
+    }
+    container.innerHTML = '';
+    p.pastLines.forEach((pastTokens, lineIdx) => {
+      let lineDiv = document.createElement('div'); lineDiv.className = 'step-line';
+      if (lineIdx > 0) lineDiv.appendChild(renderToken('='));
+      pastTokens.forEach(t => lineDiv.appendChild(renderToken(t)));
+      container.appendChild(lineDiv);
+    });
+    let currentLineDiv = document.createElement('div'); currentLineDiv.className = 'step-line';
+    if (p.pastLines.length > 0) currentLineDiv.appendChild(renderToken('='));
+    p.tokens.forEach((t, idx) => {
+      if (p.stepState === 'SELECT') {
+        if (['+', '-', '×', '÷'].includes(t)) {
+          let span = document.createElement('span'); span.className = 'op-btn'; span.innerText = t;
+          span.onclick = () => handleOpClick(pId, idx); currentLineDiv.appendChild(span);
+        } else { currentLineDiv.appendChild(renderToken(t)); }
+      } else if (p.stepState === 'INPUT_FINAL' || p.stepState === 'INPUT_COMMON' || p.stepState === 'INPUT_BORROW') {
+        if (idx >= p.leftBound && idx <= p.rightBound) {
+          if (idx === p.leftBound) {
+            if (p.stepState === 'INPUT_COMMON') currentLineDiv.appendChild(createCommonDenomInput(pId, p.currentOp));
+            else currentLineDiv.appendChild(createMixedInput(pId));
+          }
+        } else { currentLineDiv.appendChild(renderToken(t)); }
+      }
+    });
+    container.appendChild(currentLineDiv); container.scrollTop = container.scrollHeight;
+  }
+
+  function handleOpClick(pId, idx) {
+    if (!gameActive) return;
+    const p = players.find(x=>x.id===pId);
+    if (p.finished || p.stepState !== 'SELECT') return;
+    const correctIdx = getPriorityOpIndex(p.tokens);
+    const fb = document.getElementById(`fb-${pId}`);
+    
+    if (idx === correctIdx) {
+      playSound('click'); p.pastLines.push([...p.tokens]);
+      p.leftBound = idx - 1; p.rightBound = idx + 1;
+      let a = parseFraction(p.tokens[p.leftBound]), b = parseFraction(p.tokens[p.rightBound]), op = p.tokens[idx];
+      if (op === '+') p.expectedAns = addFrac(a, b); else if (op === '-') p.expectedAns = subFrac(a, b);
+
+      if (a.d !== b.d) {
+        p.stepState = 'INPUT_COMMON'; p.inputData = { '1_w': '', '1_n': '', '1_d': '', '2_w': '', '2_n': '', '2_d': '' };
+        p.activeField = '1_n'; p.currentOp = op; p.origA = a; p.origB = b;
+        fb.innerText = "✅ 正確！請擴分找出公分母 👉"; fb.className = "p-feedback correct";
+      } else {
+        if (needsBorrow(p.tokens[p.leftBound], p.tokens[p.rightBound], op)) {
+            p.stepState = 'INPUT_BORROW'; p.inputData = { w: '', n: '', d: '' }; p.activeField = 'w';
+            let p1Parts = parseMixed(p.tokens[p.leftBound]);
+            p.origBorrowW = p1Parts.w; p.expectedBorrowD = p1Parts.d; p.targetVal = a; p.rightBound = p.leftBound; 
+            fb.innerText = "⚠️ 不夠減！請先向整數借位 👉"; fb.className = "p-feedback correct";
+        } else {
+            p.stepState = 'INPUT_FINAL'; p.inputData = { w: '', n: '', d: '' }; p.activeField = 'w';
+            fb.innerText = "✅ 同分母可以直接計算答案 👉"; fb.className = "p-feedback correct";
+        }
+      }
+      renderEquation(pId);
+    } else {
+      playSound('wrong'); fb.innerText = "❌ 不對喔，請點選算式中的符號！"; fb.className = "p-feedback wrong";
+      fb.style.animation = 'none'; fb.offsetHeight; fb.style.animation = null;
+    }
+  }
+
+  function nextField(pId) {
+    if (!gameActive) return;
+    const p = players.find(x=>x.id===pId);
+    if (p.finished) return;
+    if (p.stepState === 'INPUT_COMMON') {
+      const seq = ['1_w', '1_n', '1_d', '2_w', '2_n', '2_d'];
+      p.activeField = seq[(seq.indexOf(p.activeField) + 1) % seq.length];
+    } else if (p.stepState === 'INPUT_FINAL' || p.stepState === 'INPUT_BORROW') {
+      const seq = ['w', 'n', 'd'];
+      p.activeField = seq[(seq.indexOf(p.activeField) + 1) % seq.length];
+    } else return;
+    playSound('click'); renderEquation(pId);
+  }
+
+  function press(pId, key) {
+    if (!gameActive) return;
+    let p = players.find(x=>x.id===pId);
+    if (p.finished || (p.stepState !== 'INPUT_FINAL' && p.stepState !== 'INPUT_COMMON' && p.stepState !== 'INPUT_BORROW')) return;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    if (key === 'DEL') p.inputData[p.activeField] = p.inputData[p.activeField].slice(0, -1);
+    else if (key === 'CLR') {
+      if (p.stepState === 'INPUT_COMMON') { p.inputData = { '1_w': '', '1_n': '', '1_d': '', '2_w': '', '2_n': '', '2_d': '' }; p.activeField = '1_w'; }
+      else { p.inputData = { w: '', n: '', d: '' }; p.activeField = 'w'; }
+    } else if (p.inputData[p.activeField].length < 3) {
+      p.inputData[p.activeField] += key;
+    }
+    renderEquation(pId);
+  }
+
+  function submitAns(pId) {
+    if (!gameActive) return;
+    let p = players.find(x=>x.id===pId);
+    if (p.finished) return;
+    const fb = document.getElementById(`fb-${pId}`);
+    fb.style.animation = 'none'; fb.offsetHeight; fb.style.animation = null;
+
+    if (p.stepState === 'INPUT_COMMON') {
+      let w1 = parseInt(p.inputData['1_w']) || 0, n1 = parseInt(p.inputData['1_n']), d1 = parseInt(p.inputData['1_d']);
+      let w2 = parseInt(p.inputData['2_w']) || 0, n2 = parseInt(p.inputData['2_n']), d2 = parseInt(p.inputData['2_d']);
+      if (isNaN(n1) || isNaN(d1) || isNaN(n2) || isNaN(d2)) { playSound('wrong'); fb.className="p-feedback wrong"; fb.innerText="❌ 有空位！"; return; }
+      if (d1 === 0 || d2 === 0) { playSound('wrong'); fb.className="p-feedback wrong"; fb.innerText="❌ 分母不可為0！"; return; }
+
+      let val1 = { n: w1 * d1 + n1, d: d1 }, val2 = { n: w2 * d2 + n2, d: d2 };
+      let isCommon = (d1 === d2), isEq1 = (val1.n * p.origA.d === p.origA.n * val1.d), isEq2 = (val2.n * p.origB.d === p.origB.n * val2.d);
+
+      if (isCommon && isEq1 && isEq2) {
+        playSound('correct');
+        let str1 = buildStr(w1, n1, d1), str2 = buildStr(w2, n2, d2);
+        p.tokens.splice(p.leftBound, p.rightBound - p.leftBound + 1, str1, p.currentOp, str2);
+        p.pastLines.push([...p.tokens]);
+        if (needsBorrow(str1, str2, p.currentOp)) {
+            p.stepState = 'INPUT_BORROW'; p.inputData = { w: '', n: '', d: '' }; p.activeField = 'w';
+            let p1Parts = parseMixed(str1); p.origBorrowW = p1Parts.w; p.expectedBorrowD = p1Parts.d; p.targetVal = parseFraction(str1);
+            p.rightBound = p.leftBound; fb.className = "p-feedback correct"; fb.innerText = "⚠️ 發現不夠減！請借位 👉";
+        } else {
+            p.stepState = 'INPUT_FINAL'; p.inputData = { w: '', n: '', d: '' }; p.activeField = 'w';
+            p.rightBound = p.leftBound + 2; fb.className = "p-feedback correct"; fb.innerText = "🌟 通分成功！計算答案 👉";
+        }
+        renderEquation(pId);
+      } else {
+        playSound('wrong'); fb.className = "p-feedback wrong";
+        if (!isCommon) fb.innerText = "❌ 兩個分母必須相同！";
+        else if (!isEq1 || !isEq2) fb.innerText = "❌ 擴分算錯了！";
+        else fb.innerText = "❌ 數字填寫有誤！";
+      }
+      return;
+    }
+
+    if (p.stepState === 'INPUT_BORROW') {
+      let wStr = p.inputData.w, nStr = p.inputData.n, dStr = p.inputData.d;
+      let w = parseInt(wStr) || 0, n = parseInt(nStr) || 0, d = parseInt(dStr) || 0;
+      if (n > 0 && d === 0) { playSound('wrong'); fb.className="p-feedback wrong"; fb.innerText="❌ 記得寫分母！"; return; }
+      if (d === 0) d = 1;
+
+      let userVal = { n: w * d + n, d: d };
+      if ((userVal.n * p.targetVal.d === p.targetVal.n * userVal.d) && (d === p.expectedBorrowD) && (w === p.origBorrowW - 1)) {
+          playSound('correct'); p.tokens.splice(p.leftBound, 1, buildStr(w, n, d)); p.pastLines.push([...p.tokens]);
+          p.stepState = 'INPUT_FINAL'; p.inputData = { w: '', n: '', d: '' }; p.activeField = 'w'; p.rightBound = p.leftBound + 2; 
+          fb.className = "p-feedback correct"; fb.innerText = "🌟 借位成功！計算答案 👉"; renderEquation(pId);
+      } else {
+          playSound('wrong'); fb.className = "p-feedback wrong"; fb.innerText = "❌ 借位錯誤！整數少1，分子加上分母！";
+      }
+      return;
+    }
+
+    if (p.stepState === 'INPUT_FINAL') {
+      let wStr = p.inputData.w, nStr = p.inputData.n, dStr = p.inputData.d;
+      if (!wStr && !nStr && !dStr) return;
+      let w = parseInt(wStr) || 0, n = parseInt(nStr) || 0, d = parseInt(dStr) || 0;
+      if (n > 0 && d === 0) { playSound('wrong'); fb.className="p-feedback wrong"; fb.innerText="❌ 記得輸入分母！"; return; }
+      if (d === 0) d = 1; 
+
+      let userSimpl = simplify({ n: w * d + n, d: d }), expSimpl = simplify(p.expectedAns);
+      let isMatch = (userSimpl.n === expSimpl.n && userSimpl.d === expSimpl.d);
+      let isSimplified = (n === 0 || gcd(n, d) === 1);
+      let isStandardFormat = (w === 0 || n < d);
+
+      if (isMatch) {
+        if (isSimplified && isStandardFormat) {
+          playSound('correct');
+          p.stepState = 'WAITING'; p.qIdx = (p.qIdx + 3) % rawQuestions.length;
+          p.tokens.splice(p.leftBound, p.rightBound - p.leftBound + 1, buildStr(w, n, d));
+          
+          if (gameMode === 'MULTI') {
+              p.dist += 100;
+              if (p.dist >= finishDistMulti) {
+                  p.finished = true; p.rank = currentRank++; fb.className = "p-feedback correct"; fb.innerText = "🏆 抵達終點！";
+                  if (players.every(pl => pl.finished)) {
+                      gameActive = false;
+                      setTimeout(() => { document.getElementById('modal-msg').innerText = "🎉 大家都完成了挑戰！"; document.getElementById('end-modal').style.display = 'flex'; }, 1000);
+                  }
+              } else {
+                  fb.className = "p-feedback correct"; fb.innerText = "🌟 完美解題！賽車衝刺 +100m";
+                  setTimeout(() => { if(gameActive && !p.finished) loadPlayerQuestion(pId); }, 1500);
+              }
+          } else if (gameMode === 'SINGLE') {
+              p.dist += 2;
+              updateProgressBackend(2, true);
+              updateSinglePlayerStats();
+              fb.className = "p-feedback correct"; fb.innerText = "🌟 完美解題！距離 +2m";
+              setTimeout(() => {
+                  refreshTrackOpponents();
+                  if(gameActive) loadPlayerQuestion(pId);
+              }, 800);
+          }
+          renderEquation(pId);
+
+        } else {
+          playSound('click'); fb.className = "p-feedback correct";
+          if (!isSimplified && !isStandardFormat) fb.innerText = "✅ 數值對！請約分並進位👉";
+          else if (!isSimplified) fb.innerText = "✅ 數值對！請約分到最簡👉";
+          else fb.innerText = "✅ 數值對！請把假分數進位👉";
+          p.tokens.splice(p.leftBound, p.rightBound - p.leftBound + 1, buildStr(w, n, d)); p.pastLines.push([...p.tokens]);
+          p.rightBound = p.leftBound; p.inputData = { w: '', n: '', d: '' }; p.activeField = 'w';
+          renderEquation(pId);
+        }
+      } else {
+        playSound('wrong'); fb.className = "p-feedback wrong"; fb.innerText = "❌ 算錯囉，再檢查一次！";
+        p.inputData = { w: '', n: '', d: '' }; p.activeField = 'w';
+        if (gameMode === 'SINGLE') {
+            updateProgressBackend(0, false);
+            updateSinglePlayerStats();
+        }
+        renderEquation(pId);
+      }
+    }
+  }
+
+  function gameLoop() {
+    if (!gameActive) return;
+    renderTrack();
+    animationFrameId = requestAnimationFrame(gameLoop);
+  }
+
+  function renderTrack() {
+    const w = trackCanvas.width, h = trackCanvas.height;
+    tCtx.clearRect(0, 0, w, h);
+
+    tCtx.fillStyle = "#c8d6e5";
+    tCtx.beginPath(); tCtx.moveTo(20, 30); tCtx.lineTo(w - 20, 30);
+    tCtx.lineTo(w, h - 10); tCtx.lineTo(0, h - 10); tCtx.fill();
+
+    const baseCenterY = (gameMode === 'SINGLE') ? (h / 2 + 15) : (h / 2 + 10);
+    
+    tCtx.strokeStyle = "#fff"; tCtx.lineWidth = 4; tCtx.setLineDash([20, 15]);
+    tCtx.beginPath(); tCtx.moveTo(10, baseCenterY); tCtx.lineTo(w-10, baseCenterY); tCtx.stroke(); tCtx.setLineDash([]);
+
+    const finishX = w - 60;
+    let startDist = 0;
+    let trackMaxDist = finishDistMulti;
+
+    if (gameMode === 'MULTI') {
+        for(let r = 0; r < 5; r++) {
+          let ySquare = 30 + (r * ((h-40)/5));
+          tCtx.fillStyle = (r % 2 === 0) ? "#fff" : "#333"; tCtx.fillRect(finishX, ySquare, 20, (h-40)/5);
+          tCtx.fillStyle = (r % 2 === 0) ? "#333" : "#fff"; tCtx.fillRect(finishX + 20, ySquare, 20, (h-40)/5);
+        }
+    } else {
+        trackMaxDist = 10; 
+        if (players[0] && players[0].visualDist > 8) {
+            startDist = players[0].visualDist - 8;
+        }
+        
+        tCtx.fillStyle = "rgba(0,0,0,0.5)";
+        tCtx.font = "900 15px Nunito";
+        tCtx.fillText(`◀ ${Math.floor(startDist)}m`, 20, 25);
+        tCtx.fillText(`${Math.floor(startDist + trackMaxDist)}m ▶`, finishX - 10, 25);
+    }
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+      let pt = particles[i];
+      pt.x += pt.vx; pt.y += pt.vy; pt.life -= 0.04; pt.size += 0.2;  
+      if (pt.life <= 0) particles.splice(i, 1);
+      else {
+        tCtx.fillStyle = `rgba(255, 255, 255, ${pt.life})`;
+        tCtx.beginPath(); tCtx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2); tCtx.fill();
+      }
+    }
+
+    const carW = 75, carH = 55;
+    let renderList = [];
+
+    if (gameMode === 'MULTI') {
+        renderList = players;
+    } else if (gameMode === 'SINGLE') {
+        let allCars = [...singleTrackOpponents];
+        if(!allCars.find(c => c.isMe)) {
+            allCars.push({
+                name: `${currentUser.classStr} ${currentUser.nameStr}`,
+                dist: players[0].dist,
+                img: players[0].img,
+                yOffset: 0,
+                isMe: true
+            });
+        }
+        
+        let opponentCount = 0;
+        renderList = allCars.map((c, i) => {
+            if (c.isMe) {
+                players[0].targetTrackDist = c.dist;
+                players[0].yOffset = 0; 
+                return players[0];
+            } else {
+                const newYOffset = (opponentCount % 2 === 0) ? -28 : 28;
+                opponentCount++;
+                return {
+                    isOpponent: true, name: c.name, dist: c.dist, visualDist: c.dist, 
+                    img: c.img, yOffset: newYOffset, finished: false, id: i 
+                }
+            }
+        });
+    }
+
+    let sortedList = [...renderList].sort((a, b) => a.yOffset - b.yOffset);
+
+    sortedList.forEach((p) => {
+      let speed = 0;
+      if (!p.isOpponent) {
+          speed = (p.dist - p.visualDist) * 0.1;
+          p.visualDist += speed;
+      }
+      
+      let progress = 0;
+      if (gameMode === 'SINGLE') {
+          progress = (p.visualDist - startDist) / trackMaxDist;
+      } else {
+          progress = p.visualDist / trackMaxDist;
+          if(progress > 1) progress = 1;
+      }
+      
+      if (progress < -0.5 || progress > 1.5) return;
+
+      const x = 20 + progress * (finishX - carW - 30);
+
+      const isDashing = speed > 0.5;
+      const bounceSpeed = isDashing ? 80 : 150; 
+      const bounceAmp = isDashing ? 4 : 1; 
+      const bounce = Math.sin(Date.now() / bounceSpeed + (p.id||0) * 10) * bounceAmp;
+
+      const carY = baseCenterY + p.yOffset + bounce;
+
+      let tilt = 0;
+      if (isDashing) {
+        tilt = -0.15;
+        if (Math.random() < 0.4) {
+           particles.push({
+             x: x + 10, y: carY + carH - 8, vx: -Math.random() * 2 - 1, vy: Math.random() - 0.5,
+             life: 1, size: Math.random() * 4 + 3
+           });
+        }
+      }
+
+      const shadowScale = isDashing ? 0.8 : 1;
+      tCtx.fillStyle = "rgba(0,0,0,0.2)";
+      tCtx.beginPath();
+      const shadowY = baseCenterY + p.yOffset + carH - 5;
+      tCtx.ellipse(x + carW/2, shadowY, (carW/2 - 5) * shadowScale, 6 * shadowScale, 0, 0, Math.PI*2);
+      tCtx.fill();
+
+      const stretchSpeed = isDashing ? 80 : 200;  
+      const stretchAmpY = isDashing ? 0.15 : 0.03; 
+      const stretchAmpX = isDashing ? 0.05 : 0.01; 
+      const cycle = Date.now() / stretchSpeed + (p.id||0) * 10;
+      const scaleY = 1 + Math.abs(Math.sin(cycle)) * stretchAmpY;
+      const scaleX = 1 - Math.abs(Math.sin(cycle)) * stretchAmpX;
+
+      if (p.img && p.img.complete) {
+        tCtx.save();
+        tCtx.translate(x + carW/2, carY + carH - 5);
+        tCtx.rotate(tilt);
+        tCtx.scale(scaleX, scaleY);
+        tCtx.drawImage(p.img, -carW/2, -(carH - 5), carW, carH);
+        
+        if (gameMode === 'SINGLE') {
+            tCtx.rotate(-tilt);
+            tCtx.font = "900 13px Nunito";
+            tCtx.textAlign = "center";
+            let nameTxt = p.isOpponent ? p.name : "⭐ 我 ⭐";
+            
+            tCtx.strokeStyle = "rgba(255, 255, 255, 0.9)";
+            tCtx.lineWidth = 3;
+            tCtx.strokeText(nameTxt, 0, -carH - 2);
+            
+            tCtx.fillStyle = "#000000"; 
+            tCtx.fillText(nameTxt, 0, -carH - 2);
+        }
+        
+        tCtx.restore();
+      }
+    });
+  }
+
+  setTimeout(() => { resizeCanvas(); renderTrack(); }, 200);
+
+</script>
+</body>
+</html>
